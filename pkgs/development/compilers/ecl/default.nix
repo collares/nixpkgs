@@ -36,6 +36,8 @@ stdenv.mkDerivation {
   };
 
   patches = [
+    # https://git.sagemath.org/sage.git/tree/build/pkgs/ecl/patches/ECL_WITH_LISP_FPE.patch?id=f82c716fdf9c6e91a07166d36b6329a15ecfb41d
+    ./ECL_WITH_LISP_FPE.patch
   ];
 
   configureFlags = [

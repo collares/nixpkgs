@@ -34,7 +34,6 @@ stdenv.mkDerivation rec {
     ipykernel
     ipywidgets
     jupyter_client
-    typing
   ]);
 
   unpackPhase = ''

@@ -95,7 +95,6 @@ let
     ipywidgets
     rpy2
     sphinx
-    typing
     pillow
   ];
 

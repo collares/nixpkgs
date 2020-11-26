@@ -33,6 +33,11 @@ stdenv.mkDerivation rec {
     pkgconfig
   ];
 
+  patches = [
+    # https://git.sagemath.org/sage.git/tree/build/pkgs/pynac/patches/py_ssize_t_clean.patch?id=ecc6f4591e6bebd8ce9b7505df6186aeacb6812c
+    ./py_ssize_t_clean.patch
+  ];
+
   meta = with stdenv.lib; {
     description = "Python is Not a CAS -- modified version of Ginac";
     longDescription = ''

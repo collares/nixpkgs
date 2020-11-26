@@ -131,6 +131,7 @@ writeTextFile rec {
     export SAGE_ROOT='${sagelib.src}'
     export SAGE_LOCAL='@sage-local@'
     export SAGE_SHARE='${sagelib}/share'
+    export SAGE_ENV_CONFIG_SOURCED=1 # sage-env complains if sage-env-config is not sourced beforehand
     orig_path="$PATH"
     export PATH='${runtimepath}'
 
@@ -179,7 +180,7 @@ writeTextFile rec {
 
     export SAGE_LIB='${sagelib}/${python.sitePackages}'
 
-    export SAGE_EXTCODE='${sagelib.src}/src/ext'
+    export SAGE_EXTCODE='${sagelib.src}/src/sage/ext_data'
 
   # for find_library
     export DYLD_LIBRARY_PATH="${lib.makeLibraryPath [stdenv.cc.libc singular]}''${DYLD_LIBRARY_PATH:+:}$DYLD_LIBRARY_PATH"
