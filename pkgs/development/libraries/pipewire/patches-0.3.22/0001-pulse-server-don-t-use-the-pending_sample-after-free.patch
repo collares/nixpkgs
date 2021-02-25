@@ -1,0 +1,29 @@
+From 72acd752f68a35c40641262be1c69014170d0734 Mon Sep 17 00:00:00 2001
+From: Wim Taymans <wtaymans@redhat.com>
+Date: Wed, 24 Feb 2021 12:55:34 +0100
+Subject: [PATCH] pulse-server: don't use the pending_sample after free
+
+Destroying the sample_play will free the user_data, which is the
+pending_sample info. So don't try to use the pending_sample anymore
+after destroy.
+---
+ src/modules/module-protocol-pulse/pulse-server.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modules/module-protocol-pulse/pulse-server.c b/src/modules/module-protocol-pulse/pulse-server.c
+index c390471aa..5bc8f4537 100644
+--- a/src/modules/module-protocol-pulse/pulse-server.c
++++ b/src/modules/module-protocol-pulse/pulse-server.c
+@@ -2665,8 +2665,8 @@ static void pending_sample_free(struct pending_sample *ps)
+ {
+ 	spa_list_remove(&ps->link);
+ 	spa_hook_remove(&ps->listener);
+-	sample_play_destroy(ps->play);
+ 	ps->client->ref--;
++	sample_play_destroy(ps->play);
+ }
+ 
+ static void sample_play_ready(void *data, uint32_t index)
+-- 
+2.26.2
+

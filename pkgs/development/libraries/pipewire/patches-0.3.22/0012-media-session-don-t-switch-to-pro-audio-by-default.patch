@@ -1,0 +1,30 @@
+From 84fc63e60168e2c2f43875423899b4ae3bd89a7b Mon Sep 17 00:00:00 2001
+From: Wim Taymans <wtaymans@redhat.com>
+Date: Thu, 18 Feb 2021 19:49:34 +0100
+Subject: [PATCH 12/30] media-session: don't switch to pro-audio by default
+
+Ignore the pro-audio profile when finding the best profile. We only
+want to enable the profile when explicitly set.
+
+Fixes #761
+---
+ src/examples/media-session/default-profile.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/examples/media-session/default-profile.c b/src/examples/media-session/default-profile.c
+index b17171e63..e311490ea 100644
+--- a/src/examples/media-session/default-profile.c
++++ b/src/examples/media-session/default-profile.c
+@@ -176,6 +176,9 @@ static int find_best_profile(struct device *dev, struct profile *pr)
+ 		    parse_profile(p, &t) < 0)
+ 			continue;
+ 
++		if (t.name && strcmp(t.name, "pro-audio") == 0)
++			continue;
++
+ 		if (t.name && strcmp(t.name, "off") == 0) {
+ 			off = t;
+ 		}
+-- 
+2.26.2
+

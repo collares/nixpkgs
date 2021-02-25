@@ -17,6 +17,7 @@
 , udev
 , libva
 , libsndfile
+, SDL2
 , vulkan-headers
 , vulkan-loader
 , ncurses
@@ -42,7 +43,7 @@ let
 
   self = stdenv.mkDerivation rec {
     pname = "pipewire";
-    version = "0.3.21";
+    version = "0.3.22";
 
     outputs = [
       "out"
@@ -60,7 +61,7 @@ let
       owner = "pipewire";
       repo = "pipewire";
       rev = version;
-      hash = "sha256:2YJzPTMPIoQQeNja3F53SD4gtpdSlbD/i77hBWiQfuQ=";
+      hash = "sha256:6SEOUivyehccVR5zt79Qw2rjN2KcO5x3TEejXVxRlvs=";
     };
 
     patches = [
@@ -72,6 +73,26 @@ let
       ./pipewire-pulse-path.patch
       # Add flag to specify configuration directory (different from the installation directory).
       ./pipewire-config-dir.patch
+
+      # Various quality of life improvements that didn't make it into 0.3.22
+      ./patches-0.3.22/0001-bluez5-include-a2dp-codec-profiles-in-route-profiles.patch
+      ./patches-0.3.22/0001-pulse-server-don-t-use-the-pending_sample-after-free.patch
+      ./patches-0.3.22/0005-fix-some-warnings.patch
+      ./patches-0.3.22/0006-spa-escape-double-quotes.patch
+      ./patches-0.3.22/0009-bluez5-volumes-need-to-be-distributed-to-all-channel.patch
+      ./patches-0.3.22/0010-bluez5-set-the-right-volumes-on-the-node.patch
+      ./patches-0.3.22/0011-bluez5-backend-native-Check-volume-values.patch
+      ./patches-0.3.22/0012-media-session-don-t-switch-to-pro-audio-by-default.patch
+      ./patches-0.3.22/0013-audioconvert-keep-better-track-of-param-changes.patch
+      ./patches-0.3.22/0018-pulse-server-print-encoding-name-in-format_info.patch
+      ./patches-0.3.22/0019-pulse-server-handle-unsupported-formats.patch
+      ./patches-0.3.22/0021-jack-handle-client-init-error-with-EIO.patch
+      ./patches-0.3.22/0022-pw-cli-always-output-to-stdout.patch
+      ./patches-0.3.22/0024-policy-node-don-t-crash-without-metadata.patch
+      ./patches-0.3.22/0025-bluez5-route-shouldn-t-list-a2dp-profiles-when-not-c.patch
+      ./patches-0.3.22/0027-jack-apply-PIPEWIRE_PROPS-after-reading-config.patch
+      ./patches-0.3.22/0038-jack-add-config-option-to-shorten-and-filter-names.patch
+      ./patches-0.3.22/0046-jack-fix-names-of-our-ports.patch
     ];
 
     nativeBuildInputs = [
@@ -93,6 +114,7 @@ let
       vulkan-headers
       vulkan-loader
       valgrind
+      SDL2
       systemd
     ] ++ lib.optionals gstreamerSupport [ gst_all_1.gst-plugins-base gst_all_1.gstreamer ]
     ++ lib.optional ffmpegSupport ffmpeg
@@ -122,10 +144,17 @@ let
     doCheck = true;
 
     postInstall = ''
+      mkdir -p $out/nix-support/etc/pipewire/media-session.
+      for f in etc/pipewire/*.conf; do $out/bin/spa-json-dump "$f" > "$out/nix-support/$f.json"; done
+
       moveToOutput "share/systemd/user/pipewire-pulse.*" "$pulse"
       moveToOutput "lib/systemd/user/pipewire-pulse.*" "$pulse"
       moveToOutput "bin/pipewire-pulse" "$pulse"
+
+      mkdir -p $mediaSession/nix-support/etc/pipewire/media-session.d
+      for f in etc/pipewire/media-session.d/*.conf; do $out/bin/spa-json-dump "$f" > "$mediaSession/nix-support/$f.json"; done
       moveToOutput "bin/pipewire-media-session" "$mediaSession"
+      moveToOutput "etc/pipewire/media-session.d/*.conf" "$mediaSession"
     '';
 
     passthru.tests = {
@@ -135,6 +164,17 @@ let
       test-paths = callPackage ./test-paths.nix {
         paths-out = [
           "share/alsa/alsa.conf.d/50-pipewire.conf"
+          "nix-support/etc/pipewire/client.conf.json"
+          "nix-support/etc/pipewire/client-rt.conf.json"
+          "nix-support/etc/pipewire/jack.conf.json"
+          "nix-support/etc/pipewire/pipewire.conf.json"
+          "nix-support/etc/pipewire/pipewire-pulse.conf.json"
+        ];
+        paths-out-media-session = [
+          "nix-support/etc/pipewire/media-session.d/alsa-monitor.conf.json"
+          "nix-support/etc/pipewire/media-session.d/bluez-monitor.conf.json"
+          "nix-support/etc/pipewire/media-session.d/media-session.conf.json"
+          "nix-support/etc/pipewire/media-session.d/v4l2-monitor.conf.json"
         ];
         paths-lib = [
           "lib/alsa-lib/libasound_module_pcm_pipewire.so"

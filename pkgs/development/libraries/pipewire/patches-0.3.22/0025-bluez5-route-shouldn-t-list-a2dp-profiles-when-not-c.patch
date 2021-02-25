@@ -1,0 +1,26 @@
+From a5dc2493dfccfc168cef01162f38f90e986b8af4 Mon Sep 17 00:00:00 2001
+From: Pauli Virtanen <pav@iki.fi>
+Date: Fri, 19 Feb 2021 21:16:27 +0200
+Subject: [PATCH 25/30] bluez5: route shouldn't list a2dp profiles when not
+ connected
+
+---
+ spa/plugins/bluez5/bluez5-device.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/spa/plugins/bluez5/bluez5-device.c b/spa/plugins/bluez5/bluez5-device.c
+index ea9930f76..f6a1572f8 100644
+--- a/spa/plugins/bluez5/bluez5-device.c
++++ b/spa/plugins/bluez5/bluez5-device.c
+@@ -448,6 +448,8 @@ static uint32_t profile_direction_mask(struct impl *this, uint32_t index)
+ 			have_output = true;
+ 		else if (profile == SPA_BT_PROFILE_A2DP_SOURCE)
+ 			have_input = true;
++		else if (profile == 0)
++			have_output = have_input = false;
+ 		else
+ 			have_output = have_input = true;
+ 		break;
+-- 
+2.26.2
+

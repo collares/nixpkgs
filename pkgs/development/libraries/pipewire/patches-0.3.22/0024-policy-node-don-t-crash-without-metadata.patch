@@ -1,0 +1,26 @@
+From 3673265ae20d7b59e89cad6c5238c232796731b2 Mon Sep 17 00:00:00 2001
+From: Wim Taymans <wtaymans@redhat.com>
+Date: Fri, 19 Feb 2021 17:54:31 +0100
+Subject: [PATCH 24/30] policy-node: don't crash without metadata
+
+---
+ src/examples/media-session/policy-node.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/examples/media-session/policy-node.c b/src/examples/media-session/policy-node.c
+index 89ec31729..3bcab7df4 100644
+--- a/src/examples/media-session/policy-node.c
++++ b/src/examples/media-session/policy-node.c
+@@ -810,6 +810,9 @@ static void refresh_auto_default_nodes(struct impl *impl)
+ {
+ 	struct default_node *def;
+ 
++	if (impl->session->metadata == NULL)
++		return;
++
+ 	/* Auto set default nodes */
+ 	for (def = impl->defaults; def->key != NULL; ++def) {
+ 		struct node *node;
+-- 
+2.26.2
+

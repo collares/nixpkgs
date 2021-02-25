@@ -1,0 +1,42 @@
+From 6a219092818a7a7e357441256d8070ae77ac2d3a Mon Sep 17 00:00:00 2001
+From: eater <=@eater.me>
+Date: Thu, 18 Feb 2021 13:59:09 +0100
+Subject: [PATCH 06/30] spa: escape double quotes
+
+---
+ spa/include/spa/utils/json.h | 3 +++
+ spa/tests/test-json.c        | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/spa/include/spa/utils/json.h b/spa/include/spa/utils/json.h
+index 01ff0d567..de2cce6fa 100644
+--- a/spa/include/spa/utils/json.h
++++ b/spa/include/spa/utils/json.h
+@@ -346,6 +346,9 @@ static inline int spa_json_encode_string(char *str, int size, const char *val)
+ 		case '\f':
+ 			__PUT('\\'); __PUT('f');
+ 			break;
++		case '"':
++			__PUT('\\'); __PUT('"');
++			break;
+ 		default:
+ 			__PUT(*val);
+ 			break;
+diff --git a/spa/tests/test-json.c b/spa/tests/test-json.c
+index dd510841f..c2bb5f815 100644
+--- a/spa/tests/test-json.c
++++ b/spa/tests/test-json.c
+@@ -160,8 +160,8 @@ static void test_encode(void)
+ 	spa_assert(strncmp(dst4, "\"tes", 4) == 0);
+ 	spa_assert(spa_json_encode_string(dst6, sizeof(dst6), "test") == 6);
+ 	spa_assert(strncmp(dst6, "\"test\"", 6) == 0);
+-	spa_assert(spa_json_encode_string(dst, sizeof(dst), "test\"\n\r \t\b\f\'") == 19);
+-	spa_assert(strcmp(dst, "\"test\"\\n\\r \\t\\b\\f'\"") == 0);
++	spa_assert(spa_json_encode_string(dst, sizeof(dst), "test\"\n\r \t\b\f\'") == 20);
++	spa_assert(strcmp(dst, "\"test\\\"\\n\\r \\t\\b\\f'\"") == 0);
+ }
+ 
+ int main(int argc, char *argv[])
+-- 
+2.26.2
+

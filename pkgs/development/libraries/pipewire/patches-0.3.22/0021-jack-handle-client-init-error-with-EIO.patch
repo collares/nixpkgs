@@ -1,0 +1,25 @@
+From 715a3a642a4f1c1f624e0a9dc0394b1819b69f93 Mon Sep 17 00:00:00 2001
+From: Wim Taymans <wtaymans@redhat.com>
+Date: Fri, 19 Feb 2021 16:10:10 +0100
+Subject: [PATCH 21/46] jack: handle client init error with -EIO
+
+---
+ spa/plugins/jack/jack-client.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/spa/plugins/jack/jack-client.c b/spa/plugins/jack/jack-client.c
+index 8f28eb923..b3cdcc7f2 100644
+--- a/spa/plugins/jack/jack-client.c
++++ b/spa/plugins/jack/jack-client.c
+@@ -63,6 +63,8 @@ static int status_to_result(jack_status_t status)
+ 		res = -ECONNREFUSED;
+ 	else if (status & JackVersionError)
+ 		res = -EPROTO;
++	else if (status & JackInitFailure)
++		res = -EIO;
+ 	else
+ 		res = -EFAULT;
+ 
+-- 
+2.26.2
+
