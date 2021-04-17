@@ -1,0 +1,15 @@
+--- package/src/Three.js        2021-04-16 21:38:37.860189613 -0300
++++ package/src/Three.js        2021-04-16 21:38:50.980916638 -0300
+@@ -153,6 +153,12 @@
+ export { WebGLUtils } from './renderers/webgl/WebGLUtils.js';
+ export * from './constants.js';
+ export * from './Three.Legacy.js';
++export { OrbitControls } from '../examples/jsm/controls/OrbitControls.js';
++export { Line2 } from '../examples/jsm/lines/Line2.js';
++export { LineGeometry } from '../examples/jsm/lines/LineGeometry.js';
++export { LineMaterial } from '../examples/jsm/lines/LineMaterial.js';
++export { LineSegments2 } from '../examples/jsm/lines/LineSegments2.js';
++export { LineSegmentsGeometry } from '../examples/jsm/lines/LineSegmentsGeometry.js';
+ 
+ if ( typeof __THREE_DEVTOOLS__ !== 'undefined' ) {
+ 
