@@ -1619,7 +1619,6 @@ broken-packages:
   - ghc-bignum-orphans
   - ghc-clippy-plugin
   - ghc-core-smallstep
-  - ghc-datasize
   - ghc-debug-convention
   - ghc-dump-tree
   - ghc-dup
