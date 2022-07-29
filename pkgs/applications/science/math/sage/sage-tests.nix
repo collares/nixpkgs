@@ -1,5 +1,7 @@
 { stdenv
 , lib
+, gdb
+, python3
 , sage-with-env
 , makeWrapper
 , files ? null # "null" means run all tests
@@ -47,6 +49,11 @@ stdenv.mkDerivation {
   '';
 
   doInstallCheck = true;
+
+  installCheckInputs = [
+    (gdb.override { python3 = python3.withPackages (ps: [ ps.cython ]); })
+  ];
+
   installCheckPhase = ''
     export HOME="$TMPDIR/sage-home"
     mkdir -p "$HOME"
@@ -54,6 +61,12 @@ stdenv.mkDerivation {
     # avoid running out of memory with many threads in subprocesses, see
     # https://github.com/NixOS/nixpkgs/pull/65802
     export GLIBC_TUNABLES=glibc.malloc.arena_max=4
+
+    # the python3 source package contains a python-gdb.py file. to debug python, just
+    # call "gdb python <pid>" then source python-gdb.py in gdb.
+    export NIX_DEBUG_INFO_DIRS=${python3.debug}/lib/debug
+    # use nix-build -K to be able to access logs at /tmp/nix-build-sage-tests*/sage-home/.sage
+    export SAGE_PEXPECT_LOG=yes
 
     echo "Running sage tests with arguments ${timeSpecifier} ${patienceSpecifier} ${testArgs}"
     "sage" -t --timeout=0 --nthreads "$NIX_BUILD_CORES" --optional=sage ${timeSpecifier} ${patienceSpecifier} ${testArgs}
