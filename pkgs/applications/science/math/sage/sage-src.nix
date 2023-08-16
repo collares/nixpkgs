@@ -9,14 +9,14 @@
 # all get the same sources with the same patches applied.
 
 stdenv.mkDerivation rec {
-  version = "10.0";
+  version = "10.1";
   pname = "sage-src";
 
   src = fetchFromGitHub {
     owner = "sagemath";
     repo = "sage";
     rev = version;
-    sha256 = "sha256-zN/Lo/GBCjYGemuaYpgG3laufN8te3wPjXMQ+Me9zgY=";
+    sha256 = "sha256-gEo6c9tHJHpFeZ5pBHvUtZb1GProhfmW3NoFnEeIDLU=";
   };
 
   # Patches needed because of particularities of nix or the way this is packaged.
@@ -52,57 +52,8 @@ stdenv.mkDerivation rec {
   # should come from or be proposed to upstream. This list will probably never
   # be empty since dependencies update all the time.
   packageUpgradePatches = [
-    # https://github.com/sagemath/sage/pull/35584, landed in 10.1.beta1
-    (fetchpatch {
-      name = "networkx-3.1-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/be0aab74fd7e399e146988ef27260d2837baebae.diff";
-      sha256 = "sha256-xBGrylNaiF7CpfmX9/4lTioP2LSYKoRCkKlKSGZuv9U=";
-    })
-
-    # https://github.com/sagemath/sage/pull/35612, landed in 10.1.beta1
-    (fetchpatch {
-      name = "linbox-1.7-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/35cbd2f2a2c4c355455d39b1424f05ea0aa4349b.diff";
-      sha256 = "sha256-/TpvIQZUqmbUuz6wvp3ni9oRir5LBA2FKDJcmnHI1r4=";
-    })
-
-    # https://github.com/sagemath/sage/pull/35619, landed in 10.1.beta1
-    (fetchpatch {
-      name = "maxima-5.46.0-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/4ddf9328e7598284d4bc03cd2ed890f0be6b6399.diff";
-      sha256 = "sha256-f6YaZiLSj+E0LJMsMZHDt6vecWffSAuUHYVkegBEhno=";
-    })
-
-    # https://github.com/sagemath/sage/pull/35635, landed in 10.1.beta1
-    (fetchpatch {
-      name = "sympy-1.12-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/1a73b3bbbfa0f4a297e05d49305070e1ed5ae598.diff";
-      sha256 = "sha256-k8Oam+EiRcfXC7qCdLacCx+7vpUAw2K1wsjKcQbeGb4=";
-    })
-
-    # https://github.com/sagemath/sage/pull/35826, landed in 10.1.beta5
-    (fetchpatch {
-      name = "numpy-1.25.0-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/ecfe06b8f1fe729b07e885f0de55244467e5c137.diff";
-      sha256 = "sha256-G0xhl+LyNdDYPzRqSHK3fHaepcIzpuwmqRiussraDf0=";
-    })
-
     # https://github.com/sagemath/sage/pull/35826#issuecomment-1658569891
     ./patches/numpy-1.25-deprecation.patch
-
-    # https://github.com/sagemath/sage/pull/35842, landed in 10.1.beta5
-    (fetchpatch {
-      name = "scipy-1.11-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/90ece168c3c61508baa36659b0027b7dd8b43add.diff";
-      sha256 = "sha256-Y5TmuJcUJR+veb2AuSVODGs+xkVV+pTM8fWTm4q+NDs=";
-    })
-
-    # https://github.com/sagemath/sage/pull/35825, landed in 10.1.beta6
-    (fetchpatch {
-      name = "singular-4.3.2p2-upgrade.patch";
-      url = "https://github.com/sagemath/sage/commit/1a1b49f814cdf4c4c8d0ac8930610f3fef6af5b0.diff";
-      sha256 = "sha256-GqMgoi0tsP7zcCcPumhdsbvhPB6fgw1ufx6gHlc6iSc=";
-    })
 
     # https://github.com/sagemath/sage/pull/36006, positively reviewed
     (fetchpatch {
