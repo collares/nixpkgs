@@ -42,7 +42,6 @@ stdenv.mkDerivation rec {
     libffi
     gmp
     mpfr
-    cc
     # replaces ecl's own gc which other packages can depend on, thus propagated
   ]
   ++ lib.optionals useBoehmgc [
