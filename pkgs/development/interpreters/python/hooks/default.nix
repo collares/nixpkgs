@@ -3,7 +3,7 @@ self: dontUse: with self;
 let
   inherit (python) pythonOnBuildForHost;
   inherit (pkgs) runCommand;
-  pythonInterpreter = pythonOnBuildForHost.interpreter;
+  pythonInterpreter = python.interpreter;
   pythonSitePackages = python.sitePackages;
   pythonCheckInterpreter = python.interpreter;
   setuppy = ../run_setup.py;
@@ -72,7 +72,7 @@ in {
         inherit pythonOnBuildForHost runCommand;
       };
     } ./pypa-build-hook.sh) {
-      inherit (pythonOnBuildForHost.pkgs) build;
+      inherit (python.pkgs) build;
     };
 
   pipInstallHook = callPackage ({ makePythonHook, pip }:
@@ -92,7 +92,7 @@ in {
         inherit pythonInterpreter pythonSitePackages;
       };
     } ./pypa-install-hook.sh) {
-      inherit (pythonOnBuildForHost.pkgs) installer;
+      inherit (python.pkgs) installer;
     };
 
   pytestCheckHook = callPackage ({ makePythonHook, pytest }:
@@ -243,9 +243,9 @@ in {
   sphinxHook = callPackage ({ makePythonHook, installShellFiles }:
     makePythonHook {
       name = "python${python.pythonVersion}-sphinx-hook";
-      propagatedBuildInputs = [ pythonOnBuildForHost.pkgs.sphinx installShellFiles ];
+      propagatedBuildInputs = [ python.pkgs.sphinx installShellFiles ];
       substitutions = {
-        sphinxBuild = "${pythonOnBuildForHost.pkgs.sphinx}/bin/sphinx-build";
+        sphinxBuild = "${python.pkgs.sphinx}/bin/sphinx-build";
       };
     } ./sphinx-hook.sh) {};
 }

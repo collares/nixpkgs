@@ -2,6 +2,7 @@
 , withDoc ? false
 , requireSageTests ? true
 , extraPythonPackages ? ps: []
+, useCcache ? true
 }:
 
 # Here sage and its dependencies are put together. Some dependencies may be pinned
@@ -11,8 +12,38 @@
 let
   inherit (pkgs) symlinkJoin callPackage nodePackages;
 
-  python3 = pkgs.python3 // {
-    pkgs = pkgs.python3.pkgs.overrideScope (self: super: {
+  stdenv = if !useCcache then pkgs.stdenv
+           else pkgs.overrideCC pkgs.stdenv (pkgs.ccacheWrapper.override {
+             extraConfig = ''
+               export CCACHE_COMPRESS=1
+               export CCACHE_DIR="/var/cache/ccache"
+               export CCACHE_UMASK=007
+               export CCACHE_SLOPPINESS=random_seed
+               export CCACHE_MAXSIZE=30G
+               if [ ! -d "$CCACHE_DIR" ]; then
+                 echo "====="
+                 echo "Directory '$CCACHE_DIR' does not exist"
+                 echo "Please create it with:"
+                 echo "  sudo mkdir -m0770 '$CCACHE_DIR'"
+                 echo "  sudo chown root:nixbld '$CCACHE_DIR'"
+                 echo "====="
+                 exit 1
+               fi
+               if [ ! -w "$CCACHE_DIR" ]; then
+                 echo "====="
+                 echo "Directory '$CCACHE_DIR' is not accessible for user $(whoami)"
+                 echo "Please verify its access permissions"
+                 echo "====="
+                 exit 1
+               fi
+             '';
+           });
+
+  python3 = pkgs.python3.override {
+    inherit stdenv;
+    self = python3;
+
+    packageOverrides = self: super: {
       # `sagelib`, i.e. all of sage except some wrappers and runtime dependencies
       sagelib = self.callPackage ./sagelib.nix {
         inherit flint arb;
@@ -29,7 +60,7 @@ let
       sage-setup = self.callPackage ./python-modules/sage-setup.nix {
         inherit sage-src;
       };
-    });
+    };
   };
 
   jupyter-kernel-definition = {
