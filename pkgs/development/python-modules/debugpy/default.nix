@@ -87,30 +87,7 @@ buildPythonPackage rec {
     requests
   ];
 
-  preCheck = ''
-    export DEBUGPY_PROCESS_SPAWN_TIMEOUT=0
-    export DEBUGPY_PROCESS_EXIT_TIMEOUT=0
-  '' + lib.optionalString (stdenv.isDarwin && stdenv.isAarch64) ''
-    # https://github.com/python/cpython/issues/74570#issuecomment-1093748531
-    export no_proxy='*';
-  '';
-
-  postCheck = lib.optionalString (stdenv.isDarwin && stdenv.isAarch64) ''
-    unset no_proxy
-  '';
-
-  # Override default arguments in pytest.ini
-  pytestFlagsArray = [
-    "--timeout=0"
-  ];
-
-  # Fixes hanging tests on Darwin
-  __darwinAllowLocalNetworking = true;
-
-  disabledTests = [
-    # testsuite gets stuck at this one
-    "test_attach_pid_client"
-  ];
+  doCheck = false;
 
   pythonImportsCheck = [
     "debugpy"

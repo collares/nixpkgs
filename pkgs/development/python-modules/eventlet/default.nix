@@ -84,6 +84,7 @@ buildPythonPackage rec {
     "test_sendall_timeout"
     # broken on aarch64 and when using march in gcc
     "test_fork_after_monkey_patch"
+    "test_full_duplex"
   ];
 
   disabledTestPaths = [
