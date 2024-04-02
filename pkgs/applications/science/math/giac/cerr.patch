@@ -1,0 +1,12 @@
+diff -ur a/src/first.h b/src/first.h
+--- a/src/first.h	2024-04-02 16:46:14.276495837 +0200
++++ b/src/first.h	2024-04-02 16:46:46.382175006 +0200
+@@ -124,7 +124,7 @@
+ #define CLOCK emcctime
+ #define CLOCK_T clock_t
+ #else // EMCC
+-#define CERR std::cerr
++#define CERR std::cout
+ #if defined(MS_SMART) || defined(NO_CLOCK) || defined __MINGW_H
+ #define CLOCK() 0
+ #define CLOCK_T int
