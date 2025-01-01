@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitLab,
+  fetchpatch,
   autoreconfHook,
   texinfo,
   mpfr,
@@ -23,6 +24,14 @@ stdenv.mkDerivation rec {
 
     sha256 = "sha256-aj/QmJ38ifsW36JFQcbp55aIQRvOpiqLHwEh/aFXsgo=";
   };
+
+  patches = [
+    (fetchpatch {
+      url = "https://gitlab.inria.fr/mpfi/mpfi/-/commit/a02e3f9cc10767cc4284a2ef6554f6df85e41982.patch";
+      relative = "mpfi";
+      hash = "sha256-ogUoZbQMkZMF8chSGdDymH/ewzjKSSc7GAMK2Wp58uo=";
+    })
+  ];
 
   sourceRoot = "${src.name}/mpfi";
 
