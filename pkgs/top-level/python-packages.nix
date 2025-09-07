@@ -16102,6 +16102,10 @@ self: super: with self; {
 
   rpy2 = callPackage ../development/python-modules/rpy2 { inherit (pkgs) zstd; };
 
+  rpy2-rinterface = callPackage ../development/python-modules/rpy2-rinterface {
+    inherit (pkgs) zstd;
+  };
+
   rpyc = callPackage ../development/python-modules/rpyc { };
 
   rq = callPackage ../development/python-modules/rq { };
