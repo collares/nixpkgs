@@ -70,6 +70,7 @@
   pillow,
   pip,
   pkgconfig,
+  ninja,
   pplpy,
   primecountpy,
   ptyprocess,
@@ -103,17 +104,23 @@ buildPythonPackage rec {
     pkg-config
     sage-setup
     setuptools
+    meson-python
+    cython
   ];
 
-  pythonRelaxDeps = [
-    "networkx"
-  ];
+  mesonFlags = [ "-Dbuild-docs=false" ];
 
   buildInputs = [
     gd
     iml
     libpng
   ];
+
+  #
+  # Configuring config.py using configuration
+  # ../src/sage/meson.build:129: WARNING: The variable(s) 'FOURTITWO_CIRCUITS', 'FOURTITWO_GRAVER', 'FOURTITWO_GROEBNER', 'FOURTITWO_HILBERT', 'FOURTITWO_MARKOV', 'FOURTITWO_PPI', 'FOURTITWO_QSOLVE', 'FOURTITWO_RAYS', 'FOURTITWO_ZSOLVE',
+  #  'GAP_ROOT_PATHS', 'SAGE_ECMBIN', 'SAGE_MATHJAX_DIR', 'SAGE_MAXIMA', 'SAGE_MAXIMA_FAS', 'SAGE_MAXIMA_PREFIX', 'SAGE_NAUTY_BINS_PREFIX' in the input file 'src/sage/config.py.in' are not present in the given configuration data.
+  # ../src/doc/meson.build:5: WARNING: Documentation building enabled, generating targets may be slow. To disable this, pass -Dbuild-docs=false.
 
   env = lib.optionalAttrs stdenv.cc.isClang {
     # code tries to assign a unsigned long to an int in an initialized list
@@ -175,7 +182,6 @@ buildPythonPackage rec {
     lrcalc-python
     matplotlib
     memory-allocator
-    meson-python
     mpmath
     networkx
     numpy
@@ -209,14 +215,7 @@ buildPythonPackage rec {
 
     mkdir -p "$SAGE_SHARE/sage/ext/notebook-ipython"
     mkdir -p "var/lib/sage/installed"
-
-    sed -i "/sage-conf/d" src/{setup.cfg,pyproject.toml,requirements.txt}
-
-    cd build/pkgs/sagelib/src
-  '';
-
-  postInstall = ''
-    rm -r "$out/${python.sitePackages}/sage/cython_debug"
+    patchShebangs .
   '';
 
   doCheck = false; # we will run tests in sage-tests.nix
