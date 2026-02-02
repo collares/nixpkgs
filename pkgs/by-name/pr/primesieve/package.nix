@@ -14,8 +14,8 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "kimwalisch";
     repo = "primesieve";
-    rev = "v${finalAttrs.version}";
-    hash = "sha256-6cYQDQ7lbs0zqLAO/aBIGw47idFaz9VVSm3nqGLDTAM=";
+    rev = "7971828e86bb662a129f7be0d5be1184632a1eed";
+    hash = "sha256-BO+hhTSF2KdkC8ctwHZQQeI/biF1yEDyR4lCi4QOB/I=";
   };
 
   outputs = [
