@@ -2,6 +2,8 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  fetchurl,
+  fetchpatch,
   autoPatchelfHook,
   autoAddDriverRunpath,
   makeWrapper,
@@ -45,10 +47,17 @@
   amf-headers,
   svt-av1,
   vulkan-loader,
+  shaderc,
   libappindicator,
   libnotify,
   miniupnpc,
   nlohmann_json,
+  pipewire,
+  libsysprof-capture,
+  libdeflate,
+  lerc,
+  xz,
+  libwebp,
   config,
   coreutils,
   udevCheckHook,
@@ -62,21 +71,29 @@ let
 in
 stdenv'.mkDerivation (finalAttrs: {
   pname = "sunshine";
-  version = "2025.924.154138";
+  version = "2026.516.143833";
 
   src = fetchFromGitHub {
     owner = "LizardByte";
     repo = "Sunshine";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-QrPfZqd9pgufohUjxlTpO6V0v7B41UrXHZaESsFjZ48=";
+    hash = "sha256-3yuhOyW1Rqz4ddZ40z2ZzpAReZQFva0SL595XrnFB60=";
     fetchSubmodules = true;
   };
+
+  patches = [
+    # fix(linux/xdgportal): flag stream as realtime (https://github.com/LizardByte/Sunshine/pull/4684)
+    #(fetchpatch {
+    #  url = "https://github.com/LizardByte/Sunshine/commit/bf574afdfdc21f90f1dc8eba99c58014990d5708.patch";
+    #  hash = "sha256-baBvEN9fYNPBeODx3iNY/An/gX++XRFsa+thEEZkpuU=";
+    #})
+  ];
 
   # build webui
   ui = buildNpmPackage {
     inherit (finalAttrs) src version;
     pname = "sunshine-ui";
-    npmDepsHash = "sha256-miRw5JGZ8L+CKnoZkCuVW+ptzFV3Dg21zuS9lqNeHro=";
+    npmDepsHash = "sha256-YnNnuAdj/S5LGNytqIsmCApIec8DTWKF6VIJ7AXUctU=";
 
     # use generated package-lock.json as upstream does not provide one
     postPatch = ''
@@ -102,7 +119,7 @@ stdenv'.mkDerivation (finalAttrs: {
   # FETCH_CONTENT_BOOST_USED prevents Simple-Web-Server from re-finding boost
   + ''
     substituteInPlace cmake/dependencies/Boost_Sunshine.cmake \
-      --replace-fail 'set(BOOST_VERSION "1.87.0")' 'set(BOOST_VERSION "${boost.version}")'
+      --replace-fail 'set(BOOST_VERSION "1.89.0")' 'set(BOOST_VERSION "${boost.version}")'
     echo 'set(FETCH_CONTENT_BOOST_USED TRUE)' >> cmake/dependencies/Boost_Sunshine.cmake
   ''
   # remove upstream dependency on systemd and udev
@@ -116,9 +133,9 @@ stdenv'.mkDerivation (finalAttrs: {
       --subst-var-by PROJECT_DESCRIPTION 'Self-hosted game stream host for Moonlight' \
       --subst-var-by SUNSHINE_DESKTOP_ICON 'sunshine' \
       --subst-var-by CMAKE_INSTALL_FULL_DATAROOTDIR "$out/share" \
-      --replace-fail '/usr/bin/env systemctl start --u sunshine' 'sunshine'
+      --replace-fail '/usr/bin/env systemctl start --u app-@PROJECT_FQDN@' 'sunshine'
 
-    substituteInPlace packaging/linux/sunshine.service.in \
+    substituteInPlace packaging/linux/app-dev.lizardbyte.app.Sunshine.service.in \
       --subst-var-by PROJECT_DESCRIPTION 'Self-hosted game stream host for Moonlight' \
       --subst-var-by SUNSHINE_EXECUTABLE_PATH $out/bin/sunshine \
       --replace-fail '/bin/sleep' '${lib.getExe' coreutils "sleep"}'
@@ -127,7 +144,6 @@ stdenv'.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     cmake
     pkg-config
-    python3
     makeWrapper
   ]
   ++ lib.optionals isLinux [
@@ -182,6 +198,16 @@ stdenv'.mkDerivation (finalAttrs: {
     svt-av1
     libappindicator
     libnotify
+    miniupnpc
+    nlohmann_json
+    pipewire
+    libsysprof-capture
+    libdeflate
+    lerc
+    xz
+    libwebp
+    vulkan-loader
+    shaderc
   ]
   ++ lib.optionals cudaSupport [
     cudaPackages.cudatoolkit
@@ -189,6 +215,11 @@ stdenv'.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals isDarwin [
     apple-sdk_15
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    jinja2
+    setuptools
   ];
 
   runtimeDependencies = lib.optionals isLinux [
@@ -199,6 +230,29 @@ stdenv'.mkDerivation (finalAttrs: {
     libglvnd
   ];
 
+  ffmpeg = stdenv'.mkDerivation (finalAttrs: {
+    pname = "ffmpeg-vendor";
+    version = "2026.516.30821";
+
+    dontConfigure = true;
+    dontBuild = true;
+
+    nativeBuildInputs = [
+      autoPatchelfHook
+    ];
+
+    src = fetchurl {
+      url = "https://github.com/LizardByte/build-deps/releases/download/v${finalAttrs.version}/Linux-x86_64-ffmpeg.tar.gz";
+      hash = "sha256-wyMZ/MKGe+/o/zria006WDeMOpwb/vkCnJlpMhw7xuw=";
+    };
+
+    installPhase = ''
+      runHook preInstall
+      cp -a . "$out"/
+      runHook postInstall
+    '';
+  });
+
   cmakeFlags = [
     "-Wno-dev"
     (lib.cmakeBool "BOOST_USE_STATIC" false)
@@ -206,6 +260,7 @@ stdenv'.mkDerivation (finalAttrs: {
     (lib.cmakeFeature "SUNSHINE_PUBLISHER_NAME" "nixpkgs")
     (lib.cmakeFeature "SUNSHINE_PUBLISHER_WEBSITE" "https://nixos.org")
     (lib.cmakeFeature "SUNSHINE_PUBLISHER_ISSUE_URL" "https://github.com/NixOS/nixpkgs/issues")
+    (lib.cmakeFeature "FFMPEG_PREPARED_BINARIES" "${finalAttrs.ffmpeg}")
   ]
   # upstream tries to use systemd and udev packages to find these directories in FHS; set the paths explicitly instead
   ++ lib.optionals isLinux [
@@ -213,6 +268,7 @@ stdenv'.mkDerivation (finalAttrs: {
     (lib.cmakeBool "SYSTEMD_FOUND" true)
     (lib.cmakeFeature "UDEV_RULES_INSTALL_DIR" "lib/udev/rules.d")
     (lib.cmakeFeature "SYSTEMD_USER_UNIT_INSTALL_DIR" "lib/systemd/user")
+    (lib.cmakeFeature "SYSTEMD_USER_PRESET_INSTALL_DIR" "lib/systemd/preset")
     (lib.cmakeFeature "SYSTEMD_MODULES_LOAD_DIR" "lib/modules-load.d")
   ]
   ++ lib.optionals (!cudaSupport) [
