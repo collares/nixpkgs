@@ -107,6 +107,8 @@ buildPythonPackage rec {
     pkg-config
     sage-setup
     setuptools
+    meson-python
+    cython
   ];
 
   pythonRelaxDeps = [
@@ -183,7 +185,6 @@ buildPythonPackage rec {
     lrcalc-python
     matplotlib
     memory-allocator
-    meson-python
     mpmath
     networkx
     numpy
@@ -218,13 +219,10 @@ buildPythonPackage rec {
     mkdir -p "$SAGE_SHARE/sage/ext/notebook-ipython"
     mkdir -p "var/lib/sage/installed"
 
-    sed -i "/sage-conf/d" src/{setup.cfg,pyproject.toml,requirements.txt}
-
-    cd build/pkgs/sagelib/src
+    patchShebangs src/sage_setup/autogen/interpreters/__main__.py
   '';
 
   postInstall = ''
-    rm -r "$out/${python.sitePackages}/sage/cython_debug"
   '';
 
   doCheck = false; # we will run tests in sage-tests.nix

@@ -1,0 +1,88 @@
+diff --git a/src/sage/libs/meson.build b/src/sage/libs/meson.build
+index ab823e41e93..c465c164229 100644
+--- a/src/sage/libs/meson.build
++++ b/src/sage/libs/meson.build
+@@ -14,42 +14,7 @@ if not ecl.found() and not is_windows
+   ecl = ecl_proj.get_variable('ecl_dep')
+ endif
+ ecl_bin = find_program('ecl', required: false)
+-if ecl_bin.found()
+-  maxima_check = run_command(
+-    ecl_bin,
+-    '--eval',
+-    '(require \'maxima)',
+-    '--eval',
+-    '(quit)',
+-    check: false,
+-  )
+-  if maxima_check.returncode() == 0
+-    # ecl does not have any problems with Maxima, so nothing needs to be set here:
+-    conf_data.set('SAGE_MAXIMA_FAS', '')
+-  else
+-    # Try Sage's custom maxima location
+-    sage_maxima = join_paths(
+-      get_option('SAGE_LOCAL'),
+-      'lib',
+-      'ecl',
+-      'maxima.fas',
+-    )
+-    maxima_check = run_command(
+-      ecl_bin,
+-      '--eval',
+-      '(require \'maxima "' + sage_maxima + '")',
+-      '--eval',
+-      '(quit)',
+-      check: false,
+-    )
+-    conf_data.set('SAGE_MAXIMA_FAS', sage_maxima)
+-  endif
+-
+-  maxima_bin = find_program('maxima', required: false, disabler: true)
+-  maxima_present = maxima_check.returncode() == 0 and maxima_bin.found()
+-else
+-  maxima_present = false
+-endif
++maxima_present = true
+ if not maxima_present
+   if is_windows
+     # We currently cannot build Maxima on Windows, so we disable it
+@@ -70,7 +35,6 @@ else
+   maxima = declare_dependency()
+   # ecl does not have any problems with Maxima, so nothing needs to be set here:
+   conf_data.set('SAGE_MAXIMA_SHARE', '')
+-  conf_data.set('SAGE_MAXIMA', maxima_bin.full_path())
+ endif
+ 
+ braiding = dependency(
+diff --git a/src/sage/meson.build b/src/sage/meson.build
+index 7f8916219ee..f2fb901fc2a 100644
+--- a/src/sage/meson.build
++++ b/src/sage/meson.build
+@@ -32,25 +32,10 @@ if openmp.found()
+   conf_data.set('OPENMP_CFLAGS', '-fopenmp')
+   conf_data.set('OPENMP_CXXFLAGS', '-fopenmp')
+ endif
+-gap_exe = find_program('gap', required: not is_windows, disabler: true)
+-if gap_exe.found()
+-  gaprun = run_command(
+-    gap_exe,
+-    '-r',
+-    '-q',
+-    '--bare',
+-    '--nointeract',
+-    '-c',
+-    'Display(JoinStringsWithSeparator(GAPInfo.RootPaths,";"));',
+-    check: true,
+-  )
+-  gap_root_paths = gaprun.stdout().strip()
+-  gap_root_paths = '${prefix}/lib/gap;${prefix}/share/gap;' + gaprun.stdout().strip()
+-  conf_data.set('GAP_ROOT_PATHS', gap_root_paths)
+-endif
++gap_exe = find_program('gap', required: false, disabler: true)
+ ecm_bin = find_program(
+   ['ecm', 'gmp-ecm'],
+-  required: not is_windows,
++  required: false,
+   disabler: true,
+ )
+ conf_data.set('SAGE_ECMBIN', ecm_bin.full_path())
