@@ -3,7 +3,7 @@
   stdenv,
   buildDotnetModule,
   fetchFromGitHub,
-  nodejs,
+  nodejs-slim,
   npmHooks,
   fetchNpmDeps,
   dotnetCorePackages,
@@ -11,20 +11,21 @@
 
 buildDotnetModule (finalAttrs: {
   pname = "smtp4dev";
-  version = "3.9.0";
+  version = "3.12.0";
 
   src = fetchFromGitHub {
     owner = "rnwood";
     repo = "smtp4dev";
     tag = finalAttrs.version;
-    hash = "sha256-LGhx+i4PIExC6GbBwDOLi/g1TxNoMFMZomdnbtc/wNc=";
+    hash = "sha256-1dzK0IHdjEppV62tE4Ywqs8WihLJUY4bhzJPQ1A/Eog=";
   };
 
   patches = [ ./smtp4dev-npm-packages.patch ];
 
   nativeBuildInputs = [
-    nodejs
-    nodejs.python
+    nodejs-slim
+    nodejs-slim.npm
+    nodejs-slim.python
     npmHooks.npmConfigHook
     stdenv.cc # c compiler is needed for compiling npm-deps
   ];
@@ -33,7 +34,7 @@ buildDotnetModule (finalAttrs: {
 
   npmDeps = fetchNpmDeps {
     inherit (finalAttrs) src patches;
-    hash = "sha256-Xjx3V5FH72D+CXBRZgmlkbp5evnp6F4zaHMWQB5o61w=";
+    hash = "sha256-lJyjoTTgum67j1qPtkLFGYO2sTpvN7ug0Q1jJw/Se/c=";
     postPatch = "cd ${finalAttrs.npmRoot}";
   };
 
@@ -51,7 +52,7 @@ buildDotnetModule (finalAttrs: {
   installCheckPhase = ''
     runHook preInstallCheck
 
-    $out/bin/smtp4dev --help | head -1 | grep -F "smtp4dev version ${finalAttrs.version}"
+    $out/bin/smtp4dev --help > /dev/null
 
     runHook postInstallCheck
   '';

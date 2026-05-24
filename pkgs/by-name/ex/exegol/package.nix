@@ -2,18 +2,18 @@
   lib,
   fetchFromGitHub,
   python3Packages,
-  xorg,
+  xhost,
 }:
 python3Packages.buildPythonApplication rec {
   pname = "exegol";
-  version = "5.1.1";
+  version = "5.1.10";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "ThePorgs";
     repo = "Exegol";
     tag = version;
-    hash = "sha256-q84uWxVooQ+tFA2NhQ5N30h8LPhT+fJfxVmcpMzOQVk=";
+    hash = "sha256-iyzTBZHOzr6CfZDqHvycdWZply/BXH7kESaO5pDLBMY=";
   };
 
   build-system = with python3Packages; [ pdm-backend ];
@@ -40,7 +40,7 @@ python3Packages.buildPythonApplication rec {
       supabase
     ]
     ++ pyjwt.optional-dependencies.crypto
-    ++ [ xorg.xhost ]
+    ++ [ xhost ]
     ++ lib.optional (!stdenv.hostPlatform.isLinux) tzlocal;
 
   doCheck = true;
@@ -73,6 +73,7 @@ python3Packages.buildPythonApplication rec {
     maintainers = with lib.maintainers; [
       _0b11stan
       charB66
+      macbucheron
     ];
   };
 }

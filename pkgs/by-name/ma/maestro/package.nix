@@ -10,11 +10,11 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "maestro";
-  version = "2.0.2";
+  version = "2.5.1";
 
   src = fetchurl {
     url = "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${finalAttrs.version}/maestro.zip";
-    hash = "sha256-a6A7bwn3331A/cLrAvgCLYnK0Es54O7hG3lO+XV7Kiw=";
+    hash = "sha256-LZJL/TfMyrykOKcnITZIy/5Pi7cRVZ7I6dGZ3AmlzlI=";
   };
 
   dontUnpack = true;
@@ -44,14 +44,14 @@ stdenv.mkDerivation (finalAttrs: {
     update-source-version "maestro" "$NEW_VERSION" --print-changes
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Mobile UI Automation tool";
     homepage = "https://maestro.mobile.dev/";
-    license = licenses.asl20;
+    license = lib.licenses.asl20;
     platforms = lib.platforms.all;
     sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
     changelog = "https://github.com/mobile-dev-inc/maestro/blob/main/CHANGELOG.md";
-    maintainers = with maintainers; [ SubhrajyotiSen ];
+    maintainers = with lib.maintainers; [ SubhrajyotiSen ];
     mainProgram = "maestro";
   };
 })

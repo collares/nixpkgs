@@ -8,35 +8,41 @@
   yarn,
   fixup-yarn-lock,
   prefetch-yarn-deps,
+  nixosTests,
   nodejs_20,
   nodejs-slim_20,
-  yq-go,
+  remarshal_0_17,
+  nix-update-script,
   settings ? { },
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "dashy-ui";
-  # This is like 3.1.1 but the latest working yarn.lock.
-  # All other changes are for docs with the exception of 768d746cbfcf365c58ad1194c5ccc74c14f3ed3a, which simply adds no-referrer meta tag
-  version = "3.1.1-unstable-2024-07-14";
+  version = "3.3.1";
   src = fetchFromGitHub {
     owner = "lissy93";
     repo = "dashy";
-    rev = "0b1af9db483f80323e782e7834da2a337393e111";
-    hash = "sha256-lRJ3lI9UUIaw9GWPEy81Dbf4cu6rClA4VjdWejVQN+g=";
+    tag = finalAttrs.version;
+    hash = "sha256-EvyRLa+qUFPzmU2k5CVK8WH3D3vmcj9F8fzj3LEjYgg=";
   };
   yarnOfflineCache = fetchYarnDeps {
     yarnLock = finalAttrs.src + "/yarn.lock";
-    hash = "sha256-KVAZIBM47yp1NWYc2esvTwfoAev4q7Wgi0c73PUZRNw=";
+    hash = "sha256-EMns5J8rM4qOfrACoX6lttOXh/RUtZjaKtd+BpsS6Xs=";
   };
+
+  passthru = {
+    tests.dashy = nixosTests.dashy;
+    updateScript = nix-update-script { };
+  };
+
   # - If no settings are passed, use the default config provided by upstream
   # - Despite JSON being valid YAML (and the JSON passing the config validator),
   # there seem to be some issues with JSON in the final build - potentially due to
   # the way the client parses things
-  # - Instead, we use `yq-go` to convert it to yaml
+  # - Instead, we use `remarshal` to convert it to yaml
   # Config validation needs to happen after yarnConfigHook, since it's what sets the yarn offline cache
   preBuild = lib.optional (settings != { }) ''
     echo "Writing settings override..."
-    yq --output-format yml '${builtins.toFile "conf.json" ''${builtins.toJSON settings}''}' > user-data/conf.yml
+    json2yaml '${builtins.toFile "conf.json" (builtins.toJSON settings)}' user-data/conf.yml
     yarn validate-config --offline
   '';
   installPhase = ''
@@ -61,8 +67,8 @@ stdenv.mkDerivation (finalAttrs: {
     })
     yarnBuildHook
     nodejs_20
-    # For yaml parsing
-    yq-go
+    # For yaml conversion
+    remarshal_0_17
   ];
   doDist = false;
   meta = {

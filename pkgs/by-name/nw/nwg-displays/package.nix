@@ -13,16 +13,16 @@
   wlr-randr,
 }:
 
-python3Packages.buildPythonApplication rec {
+python3Packages.buildPythonApplication (finalAttrs: {
   pname = "nwg-displays";
-  version = "0.3.25";
+  version = "0.4.0";
   format = "setuptools";
 
   src = fetchFromGitHub {
     owner = "nwg-piotr";
     repo = "nwg-displays";
-    tag = "v${version}";
-    hash = "sha256-Om5kz3mtrQPd5aHZwf/9BBDnPfSzMhyRp05MqX+7XzQ=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-e1vAVJ6wsPWbKWnVQcp1f1Z+TP3whoMHopN0N0aS9fE=";
   };
 
   nativeBuildInputs = [
@@ -63,10 +63,10 @@ python3Packages.buildPythonApplication rec {
 
   meta = {
     homepage = "https://github.com/nwg-piotr/nwg-displays";
-    description = "Output management utility for Sway and Hyprland";
+    description = "Output management utility for Sway, Hyprland and Niri";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ qf0xb ];
     mainProgram = "nwg-displays";
   };
-}
+})

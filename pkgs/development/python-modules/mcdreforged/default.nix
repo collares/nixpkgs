@@ -21,14 +21,14 @@
 
 buildPythonPackage rec {
   pname = "mcdreforged";
-  version = "2.15.1";
+  version = "2.15.7";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "MCDReforged";
     repo = "MCDReforged";
     tag = "v${version}";
-    hash = "sha256-ksNSmy1VEZvP0MmJYB50aKexm35OmeLQchGdoMvxZZ0=";
+    hash = "sha256-e1JrDh8Zio+TCVCVvH8tBE/tY5ja3Nr3dCQRJwRqYh4=";
   };
 
   build-system = [ setuptools ];
@@ -51,8 +51,6 @@ buildPythonPackage rec {
     pytestCheckHook
     versionCheckHook
   ];
-
-  versionCheckProgramArg = "--version";
 
   passthru.updateScript = nix-update-script { };
 

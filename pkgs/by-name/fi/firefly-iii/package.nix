@@ -2,49 +2,51 @@
   lib,
   fetchFromGitHub,
   stdenvNoCC,
-  nodejs,
+  nodejs-slim,
   fetchNpmDeps,
   buildPackages,
-  php84,
+  php85,
   nixosTests,
   nix-update-script,
   dataDir ? "/var/lib/firefly-iii",
 }:
 
+let
+  php = php85;
+in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "firefly-iii";
-  version = "6.3.2";
+  version = "6.6.2";
 
   src = fetchFromGitHub {
     owner = "firefly-iii";
     repo = "firefly-iii";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-pXnz2a8Z9KRl6L4PUOq/zfxYaRZmxB9whE4fS6d+5x4=";
+    hash = "sha256-bfvs8gpFYpXEHyGKY5b/PvdQWS1VeT5NFeXaI+a9nlo=";
   };
 
-  buildInputs = [ php84 ];
+  buildInputs = [ php ];
 
   nativeBuildInputs = [
-    nodejs
-    nodejs.python
+    nodejs-slim
+    nodejs-slim.npm
+    nodejs-slim.python
     buildPackages.npmHooks.npmConfigHook
-    php84.composerHooks2.composerInstallHook
+    php.packages.composer
+    php.composerHooks2.composerInstallHook
   ];
 
-  composerVendor = php84.mkComposerVendor {
+  composerVendor = php.mkComposerVendor {
     inherit (finalAttrs) pname src version;
-    composerNoDev = true;
-    composerNoPlugins = true;
-    composerNoScripts = true;
     composerStrictValidation = true;
     strictDeps = true;
-    vendorHash = "sha256-I/SoFoCquuLqRoe6ibqkwPXg66uZQt+0zx3BQ/S9ucs=";
+    vendorHash = "sha256-/exzNHzqqbT1PLciyKC7ZGUTva0xiWZS5Pnz1kAfe/4=";
   };
 
   npmDeps = fetchNpmDeps {
     inherit (finalAttrs) src;
     name = "${finalAttrs.pname}-npm-deps";
-    hash = "sha256-XxQseVs11XxxgBMBOxM5aCq2acfzEj5gD+HTQolwEUs=";
+    hash = "sha256-uV7VWEpuI+rUXrzk8BKLEkaUftrXH+vEOqdQO/pZq+M=";
   };
 
   preInstall = ''
@@ -53,7 +55,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
-    phpPackage = php84;
+    phpPackage = php;
     tests = nixosTests.firefly-iii;
     updateScript = nix-update-script {
       extraArgs = [

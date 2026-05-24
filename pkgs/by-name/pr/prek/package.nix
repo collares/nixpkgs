@@ -1,31 +1,32 @@
 {
   lib,
+  stdenv,
   fetchFromGitHub,
   rustPlatform,
+  installShellFiles,
   git,
   uv,
   python312,
+  versionCheckHook,
+  nix-update-script,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "prek";
-  version = "0.1.6";
+  version = "0.3.11";
 
   src = fetchFromGitHub {
     owner = "j178";
     repo = "prek";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-MVdd67ssP64aEV6rjNA3fxypqKn0lJe/UN2waCEkLJM=";
+    hash = "sha256-Vd4XmO+Z0Zs5kE/PMesnr6q+JUz+DGXWKVoHsPZPKwM=";
   };
 
-  cargoHash = "sha256-XW8na9kXgn7gKaN7OYlEGTv8cgtzKXggj1uXlvQh4N4=";
+  cargoHash = "sha256-AggCANaSMeKftOlan8TpgLgpYgaLCpYBBbBOeLKCCVo=";
 
-  preBuild = ''
-    version312_str=$(${python312}/bin/python -c 'import sys; print(sys.version_info[:3])')
-
-    substituteInPlace ./tests/languages/python.rs \
-      --replace '(3, 12, 11)' "$version312_str"
-  '';
+  nativeBuildInputs = [
+    installShellFiles
+  ];
 
   nativeCheckInputs = [
     git
@@ -33,76 +34,27 @@ rustPlatform.buildRustPackage (finalAttrs: {
     uv
   ];
 
-  preCheck = ''
-    export TEMP="$(mktemp -d)"
-    export TMP=$TEMP
-    export TMPDIR=$TEMP
-    export PREK_INTERNAL__TEST_DIR=$TEMP
+  # many tests just do not work, as they require network access
+  # best to disable all, as the upstream already tests everything
+  doCheck = false;
+
+  postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+    installShellCompletion --cmd prek \
+      --bash <(COMPLETE=bash $out/bin/prek) \
+      --fish <(COMPLETE=fish $out/bin/prek) \
+      --zsh <(COMPLETE=zsh $out/bin/prek)
   '';
 
-  __darwinAllowLocalNetworking = true;
-  useNextest = true;
+  doInstallCheck = true;
+  nativeInstallCheckInputs = [ versionCheckHook ];
 
-  # some python tests use uv, which in turn needs python
-  UV_PYTHON = "${python312}/bin/python";
-
-  checkFlags = builtins.map (t: "--skip ${t}") [
-    # these tests require internet access
-    "check_added_large_files_hook"
-    "check_json_hook"
-    "end_of_file_fixer_hook"
-    "mixed_line_ending_hook"
-    "install_hooks_only"
-    "install_with_hooks"
-    "golang"
-    "node"
-    "script"
-    "check_useless_excludes_remote"
-    # "meta_hooks"
-    "reuse_env"
-    "docker::docker"
-    "docker_image::docker_image"
-    "pygrep::basic_case_sensitive"
-    "pygrep::case_insensitive"
-    "pygrep::case_insensitive_multiline"
-    "pygrep::complex_regex_patterns"
-    "pygrep::invalid_args"
-    "pygrep::invalid_regex"
-    "pygrep::multiline_mode"
-    "pygrep::negate_mode"
-    "pygrep::negate_multiline_mode"
-    "pygrep::pattern_not_found"
-    "pygrep::python_regex_quirks"
-    "python::additional_dependencies"
-    "python::can_not_download"
-    "python::hook_stderr"
-    "python::language_version"
-    # can't checkout pre-commit-hooks
-    "cjk_hook_name"
-    "fail_fast"
-    "file_types"
-    "files_and_exclude"
-    "git_commit_a"
-    "log_file"
-    "merge_conflicts"
-    "pass_env_vars"
-    "restore_on_interrupt"
-    "run_basic"
-    "run_last_commit"
-    "same_repo"
-    "skips"
-    "staged_files_only"
-    "subdirectory"
-    "check_yaml_hook"
-    "check_yaml_multiple_document"
-    # does not properly use TMP
-    "hook_impl"
-  ];
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     homepage = "https://github.com/j178/prek";
     description = "Better `pre-commit`, re-engineered in Rust ";
-    changelog = "https://github.com/j178/prek/releases/tag/${finalAttrs.src.tag}";
+    mainProgram = "prek";
+    changelog = "https://github.com/j178/prek/blob/${finalAttrs.src.tag}/CHANGELOG.md";
     license = [ lib.licenses.mit ];
     maintainers = [ lib.maintainers.knl ];
   };

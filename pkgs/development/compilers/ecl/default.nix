@@ -24,12 +24,29 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "ecl";
-  version = "24.5.10";
+  version = "26.3.27";
 
   src = fetchurl {
     url = "https://common-lisp.net/project/ecl/static/files/release/ecl-${version}.tgz";
-    hash = "sha256-5Opluxhh4OSVOGv6i8ZzvQFOltPPnZHpA4+RQ1y+Yis=";
+    hash = "sha256-QW1XB78R0rPY0z1nkUGaeG5MxZrAzD7FBe5ZtRqfXJo=";
   };
+
+  patches = [
+    # https://gitlab.com/embeddable-common-lisp/ecl/-/merge_requests/370
+    (fetchpatch {
+      name = "allocate-first_env-dynamically.patch";
+      url = "https://gitlab.com/embeddable-common-lisp/ecl/-/commit/61a14dfc6681f674ae5673856c0749fdf4af6564.patch";
+      hash = "sha256-DOn0mtlW1Bl59LxqEQiE90ZJlXDSbTbxL0s8NNL882o=";
+      includes = [ "src/c/main.d" ];
+    })
+
+    # https://gitlab.com/embeddable-common-lisp/ecl/-/work_items/838
+    (fetchpatch {
+      name = "clang-miscompilation.patch";
+      url = "https://gitlab.com/embeddable-common-lisp/ecl/-/commit/d39cc449f770c52cc4c8b297cf600d7bd53d172a.patch";
+      hash = "sha256-C+zVjAY/+hQ4Te62DQxIQsHu0AqewygmSEQpcmrA5EU=";
+    })
+  ];
 
   nativeBuildInputs = [
     libtool
@@ -48,14 +65,6 @@ stdenv.mkDerivation rec {
   ++ lib.optionals useBoehmgc [
     # replaces ecl's own gc which other packages can depend on, thus propagated
     boehmgc
-  ];
-
-  patches = [
-    # https://gitlab.com/embeddable-common-lisp/ecl/-/merge_requests/1
-    (fetchpatch {
-      url = "https://raw.githubusercontent.com/sagemath/sage/9.2/build/pkgs/ecl/patches/write_error.patch";
-      sha256 = "0hfxacpgn4919hg0mn4wf4m8r7y592r4gw7aqfnva7sckxi6w089";
-    })
   ];
 
   configureFlags = [
@@ -88,13 +97,13 @@ stdenv.mkDerivation rec {
     }"
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Lisp implementation aiming to be small, fast and easy to embed";
     homepage = "https://common-lisp.net/project/ecl/";
-    license = licenses.mit;
+    license = lib.licenses.mit;
     mainProgram = "ecl";
     teams = [ lib.teams.lisp ];
-    platforms = platforms.unix;
+    platforms = lib.platforms.unix;
     changelog = "https://gitlab.com/embeddable-common-lisp/ecl/-/raw/${version}/CHANGELOG";
   };
 }

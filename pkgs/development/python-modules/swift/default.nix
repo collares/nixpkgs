@@ -22,14 +22,14 @@
   xattr,
 }:
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "swift";
-  version = "2.35.1";
+  version = "2.37.1";
   pyproject = true;
 
   src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-1C0l2TlXoiFzxaZIAWz3h1cq8f11LcwGi3slpknimHU=";
+    inherit (finalAttrs) pname version;
+    hash = "sha256-d5Jol5iCY8o+Ix+xrviufMLOh3T0UN2bVa+GrsA8D6k=";
   };
 
   nativeBuildInputs = [ installShellFiles ];
@@ -77,10 +77,10 @@ buildPythonPackage rec {
 
   pythonImportsCheck = [ "swift" ];
 
-  meta = with lib; {
+  meta = {
     description = "OpenStack Object Storage";
     homepage = "https://github.com/openstack/swift";
-    license = licenses.asl20;
-    teams = [ teams.openstack ];
+    license = lib.licenses.asl20;
+    teams = [ lib.teams.openstack ];
   };
-}
+})

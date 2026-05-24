@@ -3,6 +3,7 @@
   stdenv,
   buildNpmPackage,
   fetchFromGitHub,
+  nodejs_22,
   python3,
   xcbuild,
   nix-update-script,
@@ -10,19 +11,21 @@
 
 buildNpmPackage rec {
   pname = "firebase-tools";
-  version = "14.15.1";
+  version = "15.16.0";
+  nodejs = nodejs_22;
 
   src = fetchFromGitHub {
     owner = "firebase";
     repo = "firebase-tools";
     tag = "v${version}";
-    hash = "sha256-+wYvxsBnZBvCh98E6Th+uEnxnKnZTKv807mqST8wbJo=";
+    hash = "sha256-cYyQ7s4y+sButeuMTW1GnLqWMYwQ7Hf+yNyjeCHWK+k=";
   };
 
-  npmDepsHash = "sha256-EhUJj1kSMslCXhgzCEiVn+4DSmRfvj/nh3OmaZCh/bk=";
+  npmDepsHash = "sha256-oB3AgKYGgJOvJu68boGVpJjAEy1Npkgb/ZLatAcc5j8=";
 
+  # No more package-lock.json in upstream src
   postPatch = ''
-    ln -s npm-shrinkwrap.json package-lock.json
+    cp ./npm-shrinkwrap.json ./package-lock.json
   '';
 
   nativeBuildInputs = [

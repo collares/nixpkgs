@@ -8,16 +8,16 @@
 
 buildGo125Module (finalAttrs: {
   pname = "f2";
-  version = "2.2.0";
+  version = "2.2.2";
 
   src = fetchFromGitHub {
     owner = "ayoisaiah";
     repo = "f2";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-eIsy7YYWAiP4Oqla/wsJW2hQ1LgG+QkFxtUPagbmAuM=";
+    hash = "sha256-Kjq3QTK8FE/UDjy1OAHkzHKuK2EBNHtfDQnFAlyWbYw=";
   };
 
-  vendorHash = "sha256-DHUX+8gw+pmjEQRUeukzTimfYo0iHyN90MjrOlpjoJg=";
+  vendorHash = "sha256-tkDcC/2EdeNC60vbbRJ3zlsXvOYYkjr0QYO/aeEtQS0=";
 
   ldflags = [
     "-s"

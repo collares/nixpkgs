@@ -5,15 +5,15 @@
 }:
 buildNpmPackage (finalAttrs: {
   pname = "sillytavern";
-  version = "1.13.3";
+  version = "1.17.0";
 
   src = fetchFromGitHub {
     owner = "SillyTavern";
     repo = "SillyTavern";
     tag = finalAttrs.version;
-    hash = "sha256-IR2lR6kkjHXIHqCZJ+KK7abxK+oyJzWyEya86e3cEn8=";
+    hash = "sha256-M4YvPsiCimbxHZoPO4+aIdwmYa4o5By+qnSl7FeAD5k=";
   };
-  npmDepsHash = "sha256-cAfFRJY2cVBSu3gp2zGlHe84L7c9PahZDyO7iREjHWs=";
+  npmDepsHash = "sha256-BE8B7yALOi5WLWHAvSPC2lUCgAFjUCOUMc4Ru2RBdJM=";
 
   dontNpmBuild = true;
 

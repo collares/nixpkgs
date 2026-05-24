@@ -36,29 +36,14 @@ let
       rev = "v${version}";
       hash = "sha256-rt3RTZut41uDEh0YmpOzH3sOezeEVWtAIGMKCHLSJBw=";
     };
-    "17" = rec {
-      version = "17.0.15";
-      rev = "v${version}";
-      hash = "sha256-ETpTQYMMApECDfuRY87HrO/PUxZ13x9dBRJ3ychslUI=";
-    };
-    "16" = rec {
-      version = "16.0.15";
-      rev = "v${version}";
-      hash = "sha256-30i73tGl+1KlP92XA0uxdMTydd9EtaQ4SZ0W1kdm1fQ=";
-    };
-    "15" = rec {
-      version = "15.0.15";
-      rev = "v${version}";
-      hash = "sha256-kFVDS+qwoG1AXrZ8LytoiLVbZkTGR9sO+Wrq3VGgWNQ=";
-    };
-    "14" = rec {
-      version = "14.0.14";
-      rev = "v${version}";
-      hash = "sha256-PW+5w93omLYPZXjRtU4BNY2ztZ86pcjgUQZkrktMq+4=";
-    };
   };
 
-  branch = versions."${llvmMajor}" or (throw "Incompatible LLVM version ${llvmMajor}");
+  branch =
+    versions."${llvmMajor}" or {
+      version = "${llvmMajor}.x.x";
+      rev = "";
+      hash = "";
+    };
 in
 stdenv.mkDerivation {
   pname = "SPIRV-LLVM-Translator";
@@ -70,14 +55,8 @@ stdenv.mkDerivation {
     inherit (branch) rev hash;
   };
 
-  patches = lib.optionals (llvmMajor == "14") [
-    (fetchpatch {
-      # tries to install llvm-spirv into llvm nix store path
-      url = "https://github.com/KhronosGroup/SPIRV-LLVM-Translator/commit/cce9a2f130070d799000cac42fe24789d2b777ab.patch";
-      revert = true;
-      hash = "sha256-GbFacttZRDCgA0jkUoFA4/B3EDn3etweKvM09OwICJ8=";
-    })
-  ];
+  # TODO: Remove.
+  patches = [ ];
 
   nativeBuildInputs = [
     pkg-config
@@ -126,20 +105,13 @@ stdenv.mkDerivation {
     version: pkgs.spirv-llvm-translator.override { llvm = pkgs."llvm_${version}"; }
   );
 
-  meta = with lib; {
+  meta = {
     homepage = "https://github.com/KhronosGroup/SPIRV-LLVM-Translator";
     description = "Tool and a library for bi-directional translation between SPIR-V and LLVM IR";
     mainProgram = "llvm-spirv";
-    license = licenses.ncsa;
-    platforms = platforms.unix;
-    maintainers = with maintainers; [ gloaming ];
-
-    # For the LLVM 21 build some commits to spirv-headers
-    # are required that didn't make it into the final release of 1.4.321
-    # For example: 9e3836d Add SPV_INTEL_function_variants
-    # Once spirv-headers are released again and updated on nixpkgs,
-    # this will switch over to the nixpkgs version and should no
-    # longer be broken.
-    broken = llvmMajor == "21" && lib.versionOlder spirv-headers.version "1.4.322";
+    license = lib.licenses.ncsa;
+    platforms = lib.platforms.unix;
+    maintainers = with lib.maintainers; [ gloaming ];
+    broken = !(versions ? ${llvmMajor});
   };
 }

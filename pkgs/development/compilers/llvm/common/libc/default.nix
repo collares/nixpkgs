@@ -42,11 +42,11 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     cmake
     python3
+    ninja
   ]
-  ++ (lib.optional (lib.versionAtLeast release_version "15") ninja)
   ++ (lib.optional isFullBuild python3Packages.pyyaml);
 
-  buildInputs = lib.optional isFullBuild linuxHeaders;
+  buildInputs = lib.optional (isFullBuild && stdenv.hostPlatform.isLinux) linuxHeaders;
 
   outputs = [ "out" ] ++ (lib.optional isFullBuild "dev");
 

@@ -6,19 +6,19 @@
   nix-update-script,
 }:
 
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "jfrog-cli";
-  version = "2.78.8";
+  version = "2.78.10";
 
   src = fetchFromGitHub {
     owner = "jfrog";
     repo = "jfrog-cli";
-    tag = "v${version}";
-    hash = "sha256-NaCzNjDIUr0u/+WQmJbJrLyMPf8Z974ulmu4VYa+jcs=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-o3H+onnvGFGxUtFRYFHmrEQ5EqQCGP8n/NdqdEHNj84=";
   };
 
   proxyVendor = true;
-  vendorHash = "sha256-74FD0wx+RIwvzVT4034A+gNyNWP4soosLna2TpqUxmk=";
+  vendorHash = "sha256-jzjYFnctUwQUVC59JIsrHTIWCqYiZTurNFLn9zuM+18=";
 
   checkFlags = "-skip=^TestReleaseBundle";
 
@@ -37,12 +37,11 @@ buildGoModule rec {
   meta = {
     homepage = "https://github.com/jfrog/jfrog-cli";
     description = "Client for accessing to JFrog's Artifactory and Mission Control through their respective REST APIs";
-    changelog = "https://github.com/jfrog/jfrog-cli/releases/tag/v${version}";
+    changelog = "https://github.com/jfrog/jfrog-cli/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.asl20;
     mainProgram = "jf";
     maintainers = with lib.maintainers; [
       detegr
-      aidalgol
     ];
   };
-}
+})

@@ -13,7 +13,6 @@
   gd,
   iml,
   libpng,
-  readline,
   blas,
   boost,
   brial,
@@ -21,9 +20,8 @@
   eclib,
   ecm,
   fflas-ffpack,
-  flint3,
+  flint,
   gap,
-  giac,
   givaro,
   glpk,
   gsl,
@@ -44,7 +42,6 @@
   planarity,
   ppl,
   rankwidth,
-  ratpoints,
   singular,
   sqlite,
   symmetrica,
@@ -60,7 +57,6 @@
   ipykernel,
   ipython,
   ipywidgets,
-  jinja2,
   jupyter-client,
   jupyter-core,
   lrcalc-python,
@@ -112,14 +108,13 @@ buildPythonPackage rec {
   ];
 
   pythonRelaxDeps = [
-    "networkx"
+    "sphinx"
   ];
 
   buildInputs = [
     gd
     iml
     libpng
-    readline
   ];
 
   env = lib.optionalAttrs stdenv.cc.isClang {
@@ -138,9 +133,8 @@ buildPythonPackage rec {
     eclib
     ecm
     fflas-ffpack
-    flint3
+    flint
     gap
-    giac
     givaro
     glpk
     gsl
@@ -161,7 +155,6 @@ buildPythonPackage rec {
     planarity
     ppl
     rankwidth
-    ratpoints
     singular
     sqlite
     symmetrica
@@ -179,7 +172,6 @@ buildPythonPackage rec {
     ipykernel
     ipython
     ipywidgets
-    jinja2
     jupyter-client
     jupyter-core
     lrcalc-python

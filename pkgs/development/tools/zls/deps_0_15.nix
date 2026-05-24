@@ -11,13 +11,6 @@ linkFarm "zig-packages" [
     };
   }
   {
-    name = "N-V-__8AAMeOlQEipHjcyu0TCftdAi9AQe7EXUDJOoVe0k-t";
-    path = fetchzip {
-      url = "https://github.com/wolfpld/tracy/archive/refs/tags/v0.11.1.tar.gz";
-      hash = "sha256-HofqYJT1srDJ6Y1f18h7xtAbI/Gvvz0t9f0wBNnOZK8=";
-    };
-  }
-  {
     name = "known_folders-0.0.0-Fy-PJkfRAAAVdptXWXBspIIC7EkVgLgWozU5zIk5Zgcy";
     path = fetchzip {
       url = "https://github.com/ziglibs/known-folders/archive/92defaee76b07487769ca352fd0ba95bc8b42a2f.tar.gz";

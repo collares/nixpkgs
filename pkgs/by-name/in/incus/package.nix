@@ -1,7 +1,7 @@
 import ./generic.nix {
-  hash = "sha256-Nnig3i21AurzstrIcx+Jca8fMZtNAGbSrB4E8JhatVE=";
-  version = "6.16.0";
-  vendorHash = "sha256-l8cu+Q6Tpco48iuooVDegk7Fkw9yW1SNfyWQXhcFo4c=";
+  hash = "sha256-I+wwpsFGDX0W7pwzROGW1ZDHx+C7uc61ypO45BzOhoE=";
+  version = "6.23.0";
+  vendorHash = "sha256-R4q0FNu33qZrHrZQTqPCfw7FNUv6itl7y2AxdRF19CQ=";
   patches = [ ];
   nixUpdateExtraArgs = [
     "--override-filename=pkgs/by-name/in/incus/package.nix"

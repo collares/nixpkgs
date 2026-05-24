@@ -1,28 +1,39 @@
 {
   lib,
+  stdenv,
   rustPlatform,
   fetchFromGitHub,
   versionCheckHook,
   nix-update-script,
+  installShellFiles,
 }:
-let
+
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "mdsf";
-  version = "0.10.6";
-in
-rustPlatform.buildRustPackage {
-  inherit pname version;
+  version = "0.11.1";
 
   src = fetchFromGitHub {
     owner = "hougesen";
     repo = "mdsf";
-    tag = "v${version}";
-    hash = "sha256-fWJSCYWbt1P9Y2mZQ3n36SOnW7s3Cu7nmDS9dOv9hII=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-UfLgrukVYqkUKBI7CNLIkANO1md6ArrbSIh+f0F3bek=";
   };
 
-  cargoHash = "sha256-qwROKSUiTvBix3mxnwtoS9pTlemi9U7oCa/nlERq9sw=";
+  cargoHash = "sha256-dohbFCxoPPXZa6mKkDNmdkqH3T52hHiRTDgQJTJHfYU=";
 
   # many tests fail for various reasons of which most depend on the build sandbox
   doCheck = false;
+
+  nativeBuildInputs = [
+    installShellFiles
+  ];
+  postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+    installShellCompletion --cmd mdsf \
+      --bash <($out/bin/mdsf completions bash) \
+      --zsh <($out/bin/mdsf completions zsh) \
+      --fish <($out/bin/mdsf completions fish) \
+      --nushell <($out/bin/mdsf completions nushell)
+  '';
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
@@ -36,4 +47,4 @@ rustPlatform.buildRustPackage {
     maintainers = with lib.maintainers; [ luftmensch-luftmensch ];
     mainProgram = "mdsf";
   };
-}
+})

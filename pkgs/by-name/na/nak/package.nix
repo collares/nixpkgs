@@ -8,16 +8,16 @@
 
 buildGoModule (finalAttrs: {
   pname = "nak";
-  version = "0.15.4";
+  version = "0.17.4";
 
   src = fetchFromGitHub {
     owner = "fiatjaf";
     repo = "nak";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-9Ap342HKD9byMGjFS8/3Ai14T5QJfsA5eYvUvqM02Gg=";
+    hash = "sha256-rljH4uh8NSvJTwEVvk53oYzE2+U5dHeI9f5YZ75a1KA=";
   };
 
-  vendorHash = "sha256-CoEwwxKyW2bYwVA6mpIdGjzEyN8m7K+1bODnPLajGJo=";
+  vendorHash = "sha256-c1XSy3guyueiCSVRnRYEkFypzGuMj7/7eOYFluFyeG8=";
 
   ldflags = [
     "-s"
@@ -30,7 +30,6 @@ buildGoModule (finalAttrs: {
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
-  versionCheckProgramArg = "--version";
 
   passthru.updateScript = nix-update-script { };
 

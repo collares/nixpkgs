@@ -7,13 +7,13 @@
 
 with python3.pkgs;
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "postorius";
   version = "1.3.10";
   format = "setuptools";
 
   src = fetchPypi {
-    inherit pname version;
+    inherit (finalAttrs) pname version;
     hash = "sha256-GmbIqO+03LgbUxJ1nTStXrYN3t2MfvzbeYRAipfTW1o=";
   };
 
@@ -33,10 +33,10 @@ buildPythonPackage rec {
 
   passthru.tests = { inherit (nixosTests) mailman; };
 
-  meta = with lib; {
+  meta = {
     homepage = "https://docs.mailman3.org/projects/postorius";
     description = "Web-based user interface for managing GNU Mailman";
-    license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ qyliss ];
+    license = lib.licenses.gpl3Plus;
+    maintainers = with lib.maintainers; [ qyliss ];
   };
-}
+})

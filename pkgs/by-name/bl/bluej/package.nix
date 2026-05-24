@@ -15,10 +15,14 @@
   nix-update-script,
 }:
 let
-  openjdk = openjdk21.override {
-    enableJavaFX = true;
-    openjfx_jdk = openjfx21.override { withWebKit = true; };
-  };
+  openjdk = openjdk21.override (
+    {
+      enableJavaFX = true;
+    }
+    // lib.optionalAttrs stdenv.isLinux {
+      openjfx_jdk = openjfx21.override { withWebKit = true; };
+    }
+  );
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "bluej";
@@ -57,7 +61,7 @@ stdenv.mkDerivation (finalAttrs: {
     (makeDesktopItem {
       name = "BlueJ";
       desktopName = "BlueJ";
-      exec = "BlueJ";
+      exec = "bluej";
       icon = "bluej";
       comment = "A simple powerful Java IDE";
       categories = [
@@ -86,6 +90,7 @@ stdenv.mkDerivation (finalAttrs: {
       --suffix XDG_DATA_DIRS : ${gtk3}/share/gsettings-schemas/${gtk3.name}/ \
       --add-flags "-Dawt.useSystemAAFontSettings=on \
                    --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED \
+                   --add-opens javafx.graphics/com.sun.javafx.scene.input=ALL-UNNAMED \
                    -cp $out/lib/bluej/boot.jar bluej.Boot"
 
     runHook postInstall
@@ -102,8 +107,11 @@ stdenv.mkDerivation (finalAttrs: {
       classpathException20
     ];
     mainProgram = "bluej";
-    maintainers = with lib.maintainers; [ weirdrock ];
-    platforms = lib.platforms.linux;
+    maintainers = with lib.maintainers; [
+      weirdrock
+      eveeifyeve # Darwin
+    ];
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 
 })

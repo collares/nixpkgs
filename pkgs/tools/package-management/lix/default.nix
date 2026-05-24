@@ -11,22 +11,36 @@
   fetchFromGitHub,
   fetchFromGitea,
   fetchpatch2,
+  fetchpatch,
   rustPlatform,
   editline,
   ncurses,
   clangStdenv,
   nixpkgs-review,
+  nixpkgs-reviewFull,
+  nil,
   nix-direnv,
+  nix-du,
   nix-fast-build,
   haskell,
   nix-serve-ng,
+  nixos-rebuild-ng,
   colmena,
+  nix-update,
+  nix-init,
+  nurl,
 
   storeDir ? "/nix/store",
   stateDir ? "/nix/var",
   confDir ? "/etc",
 }:
 let
+  lixMdbookPatch = fetchpatch2 {
+    name = "lix-mdbook-0.5-support.patch";
+    url = "https://git.lix.systems/lix-project/lix/commit/54df89f601b3b4502a5c99173c9563495265d7e7.patch";
+    excludes = [ "package.nix" ];
+    hash = "sha256-uu/SIG8fgVVWhsGxmszTPHwe4SQtLgbxdShOMKbeg2w=";
+  };
   makeLixScope =
     {
       attrName,
@@ -52,21 +66,10 @@ let
             confDir
             ;
 
-          boehmgc =
-            # TODO: Why is this called `boehmgc-nix_2_3`?
-            let
-              boehmgc-nix_2_3 = boehmgc.override { enableLargeConfig = true; };
-            in
-            # Since Lix 2.91 does not use boost coroutines, it does not need boehmgc patches either.
-            if lib.versionOlder lix-args.version "2.91" then
-              boehmgc-nix_2_3.overrideAttrs (drv: {
-                patches = (drv.patches or [ ]) ++ [
-                  # Part of the GC solution in https://github.com/NixOS/nix/pull/4944
-                  ../nix/patches/boehmgc-coroutine-sp-fallback.patch
-                ];
-              })
-            else
-              boehmgc-nix_2_3;
+          boehmgc = boehmgc.override {
+            enableLargeConfig = true;
+            initialMarkStackSize = 1048576;
+          };
 
           aws-sdk-cpp =
             (aws-sdk-cpp.override {
@@ -101,7 +104,23 @@ let
             nix = self.lix;
           };
 
+          # surprisingly nixpkgs-reviewFull.override { nix = self.lix; }
+          # doesn't work, as the way nix-reviewFull is defined uses callPackage
+          # which does it's own makeOverridable and hides the .override
+          # from the derivation.
+          nixpkgs-reviewFull = nixpkgs-reviewFull.override {
+            nixpkgs-review = self.nixpkgs-review;
+          };
+
+          nil = nil.override {
+            nix = self.lix;
+          };
+
           nix-direnv = nix-direnv.override {
+            nix = self.lix;
+          };
+
+          nix-du = nix-du.override {
             nix = self.lix;
           };
 
@@ -116,15 +135,32 @@ let
           nix-serve-ng = lib.pipe (nix-serve-ng.override { nix = self.lix; }) [
             (haskell.lib.compose.enableCabalFlag "lix")
             (haskell.lib.compose.overrideCabal (drv: {
-              # https://github.com/aristanetworks/nix-serve-ng/issues/46
               # Resetting (previous) broken flag since it may be related to C++ Nix
-              broken = lib.versionAtLeast self.lix.version "2.93";
+              broken = false;
             }))
           ];
+
+          nixos-rebuild-ng = nixos-rebuild-ng.override {
+            nix = self.lix;
+          };
 
           colmena = colmena.override {
             nix = self.lix;
             inherit (self) nix-eval-jobs;
+          };
+
+          nix-update = nix-update.override {
+            nix = self.lix;
+            inherit (self) nixpkgs-review;
+          };
+
+          nix-init = nix-init.override {
+            nix = self.lix;
+            inherit (self) nurl;
+          };
+
+          nurl = nurl.override {
+            nix = self.lix;
           };
         };
     };
@@ -140,24 +176,50 @@ lib.makeExtensible (
   {
     inherit makeLixScope;
 
-    lix_2_93 = self.makeLixScope {
-      attrName = "lix_2_93";
+    lix_2_94 = self.makeLixScope {
+      attrName = "lix_2_94";
 
       lix-args = rec {
-        version = "2.93.3";
+        version = "2.94.2";
 
         src = fetchFromGitea {
           domain = "git.lix.systems";
           owner = "lix-project";
           repo = "lix";
           rev = version;
-          hash = "sha256-Oqw04eboDM8rrUgAXiT7w5F2uGrQdt8sGX+Mk6mVXZQ=";
+          hash = "sha256-Nmqsl/YCnBW5U3TUfFWHGVUbyS2/Ll655BAE3qZilC4=";
         };
 
         cargoDeps = rustPlatform.fetchCargoVendor {
           name = "lix-${version}";
           inherit src;
-          hash = "sha256-YMyNOXdlx0I30SkcmdW/6DU0BYc3ZOa2FMJSKMkr7I8=";
+          hash = "sha256-APm8m6SVEAO17BBCka13u85/87Bj+LePP7Y3zHA3Mpg=";
+        };
+
+        patches = [
+          lixMdbookPatch
+        ];
+      };
+    };
+
+    lix_2_95 = self.makeLixScope {
+      attrName = "lix_2_95";
+
+      lix-args = rec {
+        version = "2.95.2";
+
+        src = fetchFromGitea {
+          domain = "git.lix.systems";
+          owner = "lix-project";
+          repo = "lix";
+          rev = version;
+          hash = "sha256-nFxJMIdcGTI9NiHAa5HZ2BmcGFLwC2pTq+V4Gjc499I=";
+        };
+
+        cargoDeps = rustPlatform.fetchCargoVendor {
+          name = "lix-${version}";
+          inherit src;
+          hash = "sha256-a5XtutX+NS4wOqxeqbscWZMs99teKick5+cQfbCRGxQ=";
         };
       };
     };
@@ -166,27 +228,27 @@ lib.makeExtensible (
       attrName = "git";
 
       lix-args = rec {
-        version = "2.94.0-pre-20250807_${builtins.substring 0 12 src.rev}";
+        version = "2.96.0-pre-20260408_${builtins.substring 0 12 src.rev}";
 
         src = fetchFromGitea {
           domain = "git.lix.systems";
           owner = "lix-project";
           repo = "lix";
-          rev = "8bbd5e1d0df9c31b4d86ba07bc85beb952e42ccb";
-          hash = "sha256-P+WiN95OjCqHhfygglS/VOFTSj7qNdL5XQDo2wxhQqg=";
+          rev = "bc9fb560ac2d36cd317a856ee96785ea2055fbff";
+          hash = "sha256-bONRPjhk5OZdnkQZexZNJzlvwIPg31Gy7fNiwGoX3BQ=";
         };
 
         cargoDeps = rustPlatform.fetchCargoVendor {
           name = "lix-${version}";
           inherit src;
-          hash = "sha256-APm8m6SVEAO17BBCka13u85/87Bj+LePP7Y3zHA3Mpg=";
+          hash = "sha256-a5XtutX+NS4wOqxeqbscWZMs99teKick5+cQfbCRGxQ=";
         };
       };
     };
 
-    latest = self.lix_2_93;
+    latest = self.lix_2_95;
 
-    stable = self.lix_2_93;
+    stable = self.lix_2_94;
 
     # Previously, `nix-eval-jobs` was not packaged here, so we export an
     # attribute with the previously-expected structure for compatibility. This
@@ -215,5 +277,6 @@ lib.makeExtensible (
     lix_2_90 = throw (removedMessage "2.90"); # added in 2025-09-11
     lix_2_91 = throw (removedMessage "2.91"); # added in 2025-09-11
     lix_2_92 = throw (removedMessage "2.92"); # added in 2025-09-11
+    lix_2_93 = throw (removedMessage "2.93"); # added in 2026-04-19
   }
 )

@@ -93,7 +93,7 @@
   pytestCheckHook,
 }:
 let
-  version = "9.0.0";
+  version = "9.7.0";
   agent = [
     mcpadapt
     smolagents
@@ -241,7 +241,7 @@ let
     owner = "neuml";
     repo = "txtai";
     tag = "v${version}";
-    hash = "sha256-tsbOythB/b4KTd2uncVYUPG4IjlbmNb1teVkq7N19PY=";
+    hash = "sha256-24q75SqOV/twvMhbi3Exl9eHcfoyeTIbUEwvIYVtceM=";
   };
 in
 buildPythonPackage {
@@ -290,7 +290,7 @@ buildPythonPackage {
   ++ optional-dependencies.api
   ++ optional-dependencies.similarity;
 
-  pytestFlagsArray = [
+  enabledTestPaths = [
     "test/python/*"
   ];
 

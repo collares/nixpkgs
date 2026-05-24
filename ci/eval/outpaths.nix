@@ -10,11 +10,17 @@
   attrNamesOnly ? false,
 
   # Set this to `null` to build for builtins.currentSystem only
-  systems ? builtins.fromJSON (builtins.readFile ../supportedSystems.json),
+  systems ? builtins.fromJSON (
+    builtins.readFile (path + "/pkgs/top-level/release-supported-systems.json")
+  ),
+
+  # Customize the config used to evaluate nixpkgs
+  extraNixpkgsConfig ? { },
 }:
 let
   lib = import (path + "/lib");
-  hydraJobs =
+
+  nixpkgsJobs =
     import (path + "/pkgs/top-level/release.nix")
       # Compromise: accuracy vs. resources needed for evaluation.
       {
@@ -28,6 +34,9 @@ let
             allowInsecurePredicate = x: true;
             allowVariants = !attrNamesOnly;
             checkMeta = true;
+
+            # Silence the `x86_64-darwin` deprecation warning.
+            allowDeprecatedx86_64Darwin = true;
 
             handleEvalIssue =
               reason: errormsg:
@@ -54,14 +63,23 @@ let
                 true;
 
             inHydra = true;
-          };
+          }
+          // extraNixpkgsConfig;
 
           __allowFileset = false;
         };
       };
+
+  nixosJobs = import (path + "/nixos/release.nix") {
+    inherit attrNamesOnly;
+    supportedSystems = lib.filter (lib.hasSuffix "-linux") (
+      if systems == null then [ builtins.currentSystem ] else systems
+    );
+  };
+
   recurseIntoAttrs = attrs: attrs // { recurseForDerivations = true; };
 
-  # hydraJobs leaves recurseForDerivations as empty attrmaps;
+  # release-lib leaves recurseForDerivations as empty attrmaps;
   # that would break nix-env and we also need to recurse everywhere.
   tweak = lib.mapAttrs (
     name: val:
@@ -87,4 +105,9 @@ let
   ];
 
 in
-tweak (builtins.removeAttrs hydraJobs blacklist)
+tweak (
+  (removeAttrs nixpkgsJobs blacklist)
+  // {
+    nixosTests = lib.filterAttrs (name: _: name == "simple") nixosJobs.tests;
+  }
+)

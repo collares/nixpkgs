@@ -52,7 +52,7 @@
 
   obs-markdown = callPackage ./obs-markdown.nix { };
 
-  obs-media-controls = qt6Packages.callPackage ./obs-media-controls.nix { };
+  obs-media-controls = qt6Packages.callPackage ./obs-media-controls { };
 
   obs-move-transition = callPackage ./obs-move-transition.nix { };
 
@@ -60,13 +60,11 @@
 
   obs-mute-filter = callPackage ./obs-mute-filter.nix { };
 
-  obs-ndi = qt6Packages.callPackage ./obs-ndi { };
-
   obs-noise = callPackage ./obs-noise.nix { };
 
-  obs-nvfbc = callPackage ./obs-nvfbc.nix { };
-
   obs-pipewire-audio-capture = callPackage ./obs-pipewire-audio-capture.nix { };
+
+  obs-plugin-countdown = qt6Packages.callPackage ./obs-plugin-countdown.nix { };
 
   obs-recursion-effect = callPackage ./obs-recursion-effect.nix { };
 
@@ -97,8 +95,6 @@
   obs-transition-table = qt6Packages.callPackage ./obs-transition-table.nix { };
 
   obs-tuna = qt6Packages.callPackage ./obs-tuna { };
-
-  obs-urlsource = qt6Packages.callPackage ./obs-urlsource.nix { };
 
   obs-vaapi = callPackage ./obs-vaapi { };
 

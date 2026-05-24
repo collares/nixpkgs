@@ -7,11 +7,11 @@
   kconfig,
   kcoreaddons,
   kwindowsystem,
-  libdbusmenu,
   phonon,
   qttools,
   qtx11extras,
   qtmacextras,
+  libdbusmenu-qt5,
 }:
 
 mkDerivation {
@@ -25,9 +25,9 @@ mkDerivation {
     kconfig
     kcoreaddons
     kwindowsystem
-    libdbusmenu
     phonon
     qtx11extras
+    libdbusmenu-qt5
   ]
   ++ lib.optionals stdenv.hostPlatform.isDarwin [
     qtmacextras

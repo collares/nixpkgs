@@ -4,6 +4,7 @@
   fetchFromGitHub,
   gradle,
   jdk17,
+  jdk21,
   makeBinaryWrapper,
   openssl,
   libdeflate,
@@ -18,9 +19,7 @@
   ],
 }:
 let
-  gradle_jdk17 = gradle.override {
-    javaToolchains = [ jdk17 ];
-  };
+  gradle_jdk17 = gradle.override { javaToolchains = [ jdk17 ]; };
   velocityNativePlatform =
     {
       x86_64-linux = "linux_x86_64";
@@ -35,13 +34,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "velocity";
-  version = "3.4.0-unstable-2025-08-31";
+  version = "3.5.0-unstable-2026-05-01";
 
   src = fetchFromGitHub {
     owner = "PaperMC";
     repo = "Velocity";
-    rev = "bfd15e1a816b0928d51abef03333166ecc225358";
-    hash = "sha256-+BM+oaV+CjqOErSl03nDYh9kKxq2gz/orsi66+Cn3xk=";
+    rev = "ad8de4361c9d6e93b818d3381e85b14e0c90ad05";
+    hash = "sha256-SzIZWZxFVupHNMVtlEC8BuDkj42G7uJkkOZa/In2tFY=";
   };
 
   nativeBuildInputs = [
@@ -55,7 +54,7 @@ stdenv.mkDerivation (finalAttrs: {
     libdeflate
 
     # needed for building velocity-native jni
-    jdk17
+    jdk21
   ];
 
   strictDeps = true;

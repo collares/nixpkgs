@@ -3,6 +3,7 @@
 {
   config,
   lib,
+  utils,
   pkgs,
   ...
 }:
@@ -135,6 +136,7 @@ let
 
       imports = [
         (lib.mkRenamedOptionModule [ "enableKwallet" ] [ "kwallet" "enable" ])
+        (lib.mkRenamedOptionModule [ "u2fAuth" ] [ "u2f" "enable" ])
       ];
 
       options = {
@@ -172,6 +174,28 @@ let
           };
         };
 
+        useDefaultRules = lib.mkOption {
+          # This option is experimental and subject to breaking changes without notice.
+          visible = false;
+          default = true;
+          type = lib.types.bool;
+          description = ''
+            Whether to set up the default NixOS rule stack for this service.
+
+            Set this to `false` if you want to define the entire rule stack for this service.
+
+            ::: {.warning}
+            This option is experimental and subject to breaking changes without notice.
+
+            If you use this option in your system configuration, you will need to manually monitor this module for any changes. Otherwise, failure to adjust your configuration properly could lead to you being locked out of your system, or worse, your system could be left wide open to attackers.
+
+            If you share configuration examples that use this option, you MUST include this warning so that users are informed.
+
+            You may freely use this option within `nixpkgs`, and future changes will account for those use sites.
+            :::
+          '';
+        };
+
         unixAuth = lib.mkOption {
           default = true;
           type = lib.types.bool;
@@ -202,17 +226,39 @@ let
           '';
         };
 
-        u2fAuth = lib.mkOption {
-          default = config.security.pam.u2f.enable;
-          defaultText = lib.literalExpression "config.security.pam.u2f.enable";
-          type = lib.types.bool;
-          description = ''
-            If set, users listed in
-            {file}`$XDG_CONFIG_HOME/Yubico/u2f_keys` (or
-            {file}`$HOME/.config/Yubico/u2f_keys` if XDG variable is
-            not set) are able to log in with the associated U2F key. Path can be
-            changed using {option}`security.pam.u2f.authFile` option.
-          '';
+        u2f = {
+          enable = lib.mkOption {
+            default = config.security.pam.u2f.enable;
+            defaultText = lib.literalExpression "config.security.pam.u2f.enable";
+            type = lib.types.bool;
+            description = ''
+              If set, users listed in
+              {file}`$XDG_CONFIG_HOME/Yubico/u2f_keys` (or
+              {file}`$HOME/.config/Yubico/u2f_keys` if XDG variable is
+              not set) are able to log in with the associated U2F key. Path can be
+              changed using {option}`security.pam.u2f.authFile` option.
+            '';
+          };
+
+          control = lib.mkOption {
+            default = config.security.pam.u2f.control;
+            defaultText = lib.literalExpression "config.security.pam.u2f.control";
+            type = lib.types.enum [
+              "required"
+              "requisite"
+              "sufficient"
+              "optional"
+            ];
+            description = ''
+              This option sets pam "control".
+              If you want to have multi factor authentication, use "required".
+              If you want to use U2F device instead of regular password, use "sufficient".
+
+              Read
+              {manpage}`pam.conf(5)`
+              for better understanding of this option.
+            '';
+          };
         };
 
         usshAuth = lib.mkOption {
@@ -320,6 +366,28 @@ let
             If set, fingerprint reader will be used (if exists and
             your fingerprints are enrolled).
           '';
+        };
+
+        howdy = {
+          enable = lib.mkOption {
+            default = config.security.pam.howdy.enable;
+            defaultText = lib.literalExpression "config.security.pam.howdy.enable";
+            type = lib.types.bool;
+            description = ''
+              Whether to enable the Howdy PAM module.
+
+              If set, users can be authenticated using Howdy, the Windows
+              Hello™-style facial authentication service.
+            '';
+          };
+          control = lib.mkOption {
+            default = config.security.pam.howdy.control;
+            defaultText = lib.literalExpression "config.security.pam.howdy.control";
+            type = lib.types.str;
+            description = ''
+              This option sets the PAM "control" used for this module.
+            '';
+          };
         };
 
         oathAuth = lib.mkOption {
@@ -583,6 +651,13 @@ let
           '';
         };
 
+        enableUMask = lib.mkOption {
+          default = config.security.pam.enableUMask;
+          defaultText = lib.literalExpression "config.security.pam.enableUMask";
+          type = lib.types.bool;
+          description = "If enabled, the pam_umask module will be loaded.";
+        };
+
         failDelay = {
           enable = lib.mkOption {
             type = lib.types.bool;
@@ -634,6 +709,137 @@ let
               Don't send the password immediately after login, but store for PAM
               `session`.
             '';
+          };
+        };
+
+        slurm = {
+          enable = lib.mkOption {
+            default = false;
+            type = lib.types.bool;
+            description = ''
+              If set, ONLY prevents users from logging into nodes if they have no
+              jobs in the node. This module is a legacy implementation with
+              functionality limited to login restrictions.
+            '';
+          };
+
+          adopt = {
+            enable = lib.mkOption {
+              default = false;
+              type = lib.types.bool;
+              description = ''
+                If set, it prevents users from logging into nodes if they have no jobs
+                in the node. It also tracks any other spawned processes for accounting
+                and ensures complete job cleanup when a job is completed for any
+                successful connection. Spawned processes get "adopted" as external
+                steps into the current job. As such, those steps get integrated with
+                Slurm accounting and control group facilities.
+              '';
+            };
+
+            settings = lib.mkOption {
+              type = lib.types.submodule {
+                freeformType = moduleSettingsType;
+                options = {
+
+                  action_no_jobs = lib.mkOption {
+                    type = lib.types.enum [
+                      "ignore"
+                      "deny"
+                    ];
+                    default = "deny";
+                    description = ''
+                      What to do if no jobs from the user are found, deny or ignore
+                      (pass along to next PAM module).
+                    '';
+                  };
+
+                  action_unknown = lib.mkOption {
+                    type = lib.types.enum [
+                      "newest"
+                      "allow"
+                      "deny"
+                    ];
+                    default = "newest";
+                    description = ''
+                      If the user has jobs, attach them to the newest job. Allow
+                      the connection through without adoption.
+                    '';
+                  };
+
+                  action_adopt_failure = lib.mkOption {
+                    type = lib.types.enum [
+                      "allow"
+                      "deny"
+                    ];
+                    default = "deny";
+                    description = ''
+                      What to do if the process is unable to be adopted into a job.
+                      `allow` matches the upstream default which is only really
+                      suitable for testing; production systems will want `deny`
+                      as a default.
+                    '';
+                  };
+
+                  action_generic_failure = lib.mkOption {
+                    type = lib.types.enum [
+                      "ignore"
+                      "allow"
+                      "deny"
+                    ];
+                    default = "ignore";
+                    description = ''
+                      Catch all for failures related to kernel issues or slurmd
+                      access. Ignore falls through to the next PAM module, allowing
+                      the connection to go through without adoption.
+                    '';
+                  };
+
+                  disable_x11 = lib.mkOption {
+                    type = lib.types.enum [
+                      "0"
+                      "1"
+                    ];
+                    default = "0";
+                    description = ''
+                      Disable or enable x11 sessions. '0' means the adopted connection
+                      has Slurm X11 forwarding with DISPLAY overwritten using X11
+                      tunnel endpoint details.
+                    '';
+                  };
+
+                  nodename = lib.mkOption {
+                    type = with lib.types; nullOr nonEmptyStr;
+                    default = null;
+                    example = "compute-a-01";
+                    description = ''
+                      Set this only when the Slurm `NodeName` for this machine
+                      differs from `hostname -s`. If unset, `pam_slurm_adopt`
+                      uses the host short name.
+                    '';
+                  };
+
+                  join_container = lib.mkOption {
+                    type = lib.types.enum [
+                      "true"
+                      "false"
+                    ];
+                    default = "true";
+                    description = ''
+                      Attach to a container created by job_container/tmpfs
+                    '';
+                  };
+                };
+              };
+
+              default = {
+                service = name;
+              };
+              description = ''
+                Slurm Adopt Settings. More information is available at:
+                  - https://slurm.schedmd.com/pam_slurm_adopt.html
+              '';
+            };
           };
         };
 
@@ -716,16 +922,9 @@ let
         # !!! TODO: move the LDAP stuff to the LDAP module, and the
         # Samba stuff to the Samba module.  This requires that the PAM
         # module provides the right hooks.
-        rules =
-          let
-            autoOrderRules = lib.flip lib.pipe [
-              (lib.imap1 (index: rule: rule // { order = lib.mkDefault (10000 + index * 100); }))
-              (map (rule: lib.nameValuePair rule.name (removeAttrs rule [ "name" ])))
-              lib.listToAttrs
-            ];
-          in
-          {
-            account = autoOrderRules [
+        rules = (
+          lib.optionalAttrs cfg.useDefaultRules {
+            account = utils.pam.autoOrderRules [
               {
                 name = "ldap";
                 enable = use_ldap;
@@ -743,7 +942,7 @@ let
               }
               {
                 name = "kanidm";
-                enable = config.services.kanidm.enablePam;
+                enable = config.services.kanidm.unix.enable;
                 control = "sufficient";
                 modulePath = "${config.services.kanidm.package}/lib/pam_kanidm.so";
                 settings = {
@@ -781,6 +980,12 @@ let
                 control = "sufficient";
                 modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so";
               }
+              {
+                name = "slurm";
+                enable = cfg.slurm.enable;
+                control = "required";
+                modulePath = "${pkgs.slurm}/lib/security/pam_slurm.so";
+              }
               # The required pam_unix.so module has to come after all the sufficient modules
               # because otherwise, the account lookup will fail if the user does not exist
               # locally, for example with MySQL- or LDAP-auth.
@@ -789,9 +994,18 @@ let
                 control = "required";
                 modulePath = "${package}/lib/security/pam_unix.so";
               }
+              # pam_slurm_adopt must be the last module in the account stack.
+              {
+                name = "slurm_adopt";
+                enable = cfg.slurm.adopt.enable;
+                control = "required";
+                modulePath = "${pkgs.slurm}/lib/security/pam_slurm_adopt.so";
+                settings = cfg.slurm.adopt.settings;
+              }
+
             ];
 
-            auth = autoOrderRules (
+            auth = utils.pam.autoOrderRules (
               [
                 {
                   name = "oslogin_login";
@@ -870,8 +1084,8 @@ let
                   in
                   {
                     name = "u2f";
-                    enable = cfg.u2fAuth;
-                    control = u2f.control;
+                    enable = cfg.u2f.enable;
+                    control = cfg.u2f.control;
                     modulePath = "${pkgs.pam_u2f}/lib/security/pam_u2f.so";
                     inherit (u2f) settings;
                   }
@@ -944,6 +1158,12 @@ let
                   control = "sufficient";
                   modulePath = "${config.services.fprintd.package}/lib/security/pam_fprintd.so";
                 }
+                {
+                  name = "howdy";
+                  enable = cfg.howdy.enable;
+                  control = cfg.howdy.control;
+                  modulePath = "${config.services.howdy.package}/lib/security/pam_howdy.so";
+                }
               ]
               ++
                 # Modules in this block require having the password set in PAM_AUTHTOK.
@@ -958,8 +1178,7 @@ let
                   (
                     (cfg.unixAuth || config.services.homed.enable)
                     && (
-                      config.security.pam.enableEcryptfs
-                      || config.security.pam.enableFscrypt
+                      config.security.pam.enableFscrypt
                       || cfg.pamMount
                       || cfg.kwallet.enable
                       || cfg.enableGnomeKeyring
@@ -990,15 +1209,6 @@ let
                       };
                     }
                     {
-                      name = "ecryptfs";
-                      enable = config.security.pam.enableEcryptfs;
-                      control = "optional";
-                      modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so";
-                      settings = {
-                        unwrap = true;
-                      };
-                    }
-                    {
                       name = "fscrypt";
                       enable = config.security.pam.enableFscrypt;
                       control = "optional";
@@ -1011,6 +1221,7 @@ let
                       modulePath = "${config.boot.zfs.package}/lib/security/pam_zfs_key.so";
                       settings = {
                         inherit (config.security.pam.zfs) homes;
+                        mount_recursively = config.security.pam.zfs.mountRecursively;
                       };
                     }
                     {
@@ -1113,7 +1324,7 @@ let
                 }
                 {
                   name = "kanidm";
-                  enable = config.services.kanidm.enablePam;
+                  enable = config.services.kanidm.unix.enable;
                   control = "sufficient";
                   modulePath = "${config.services.kanidm.package}/lib/pam_kanidm.so";
                   settings = {
@@ -1167,7 +1378,7 @@ let
               ]
             );
 
-            password = autoOrderRules [
+            password = utils.pam.autoOrderRules [
               {
                 name = "systemd_home";
                 enable = config.services.homed.enable;
@@ -1184,12 +1395,6 @@ let
                 };
               }
               {
-                name = "ecryptfs";
-                enable = config.security.pam.enableEcryptfs;
-                control = "optional";
-                modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so";
-              }
-              {
                 name = "fscrypt";
                 enable = config.security.pam.enableFscrypt;
                 control = "optional";
@@ -1202,6 +1407,7 @@ let
                 modulePath = "${config.boot.zfs.package}/lib/security/pam_zfs_key.so";
                 settings = {
                   inherit (config.security.pam.zfs) homes;
+                  mount_recursively = config.security.pam.zfs.mountRecursively;
                 };
               }
               {
@@ -1227,7 +1433,7 @@ let
               }
               {
                 name = "kanidm";
-                enable = config.services.kanidm.enablePam;
+                enable = config.services.kanidm.unix.enable;
                 control = "sufficient";
                 modulePath = "${config.services.kanidm.package}/lib/pam_kanidm.so";
               }
@@ -1257,7 +1463,7 @@ let
               }
             ];
 
-            session = autoOrderRules [
+            session = utils.pam.autoOrderRules [
               {
                 name = "env";
                 enable = cfg.setEnvironment;
@@ -1291,6 +1497,12 @@ let
                 };
               }
               {
+                name = "umask";
+                enable = cfg.enableUMask;
+                control = "optional";
+                modulePath = "${package}/lib/security/pam_umask.so";
+              }
+              {
                 name = "systemd_home";
                 enable = config.services.homed.enable;
                 control = "required";
@@ -1315,12 +1527,6 @@ let
                 settings = {
                   silent = true;
                 };
-              }
-              {
-                name = "ecryptfs";
-                enable = config.security.pam.enableEcryptfs;
-                control = "optional";
-                modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so";
               }
               # Work around https://github.com/systemd/systemd/issues/8598
               # Skips the pam_fscrypt module for systemd-user sessions which do not have a password
@@ -1362,6 +1568,7 @@ let
                 settings = {
                   inherit (config.security.pam.zfs) homes;
                   nounmount = config.security.pam.zfs.noUnmount;
+                  mount_recursively = config.security.pam.zfs.mountRecursively;
                 };
               }
               {
@@ -1390,7 +1597,7 @@ let
               }
               {
                 name = "kanidm";
-                enable = config.services.kanidm.enablePam;
+                enable = config.services.kanidm.unix.enable;
                 control = "optional";
                 modulePath = "${config.services.kanidm.package}/lib/pam_kanidm.so";
               }
@@ -1424,7 +1631,7 @@ let
                 control = "optional";
                 modulePath = "${package}/lib/security/pam_xauth.so";
                 settings = {
-                  xauthpath = "${pkgs.xorg.xauth}/bin/xauth";
+                  xauthpath = "${pkgs.xauth}/bin/xauth";
                   systemuser = 99;
                 };
               }
@@ -1488,7 +1695,8 @@ let
                 modulePath = "${pkgs.intune-portal}/lib/security/pam_intune.so";
               }
             ];
-          };
+          }
+        );
       };
 
     };
@@ -1799,6 +2007,28 @@ in
         description = ''
           This controls the hostname for the 9front authentication server
           that users will be authenticated against.
+        '';
+      };
+    };
+
+    security.pam.howdy = {
+      enable = lib.mkOption {
+        default = config.services.howdy.enable;
+        defaultText = lib.literalExpression "config.services.howdy.enable";
+        type = lib.types.bool;
+        description = ''
+          Whether to enable the Howdy PAM module.
+
+          If set, users can be authenticated using Howdy, the Windows
+          Hello™-style facial authentication service.
+        '';
+      };
+      control = lib.mkOption {
+        default = config.services.howdy.control;
+        defaultText = lib.literalExpression "config.services.howdy.control";
+        type = lib.types.str;
+        description = ''
+          This option sets the PAM "control" used for this module.
         '';
       };
     };
@@ -2195,9 +2425,18 @@ in
           Do not unmount home dataset on logout.
         '';
       };
+
+      mountRecursively = lib.mkOption {
+        default = false;
+        type = lib.types.bool;
+        description = ''
+          Mount child datasets of home dataset.
+        '';
+      };
     };
 
-    security.pam.enableEcryptfs = lib.mkEnableOption "eCryptfs PAM module (mounting ecryptfs home directory on login)";
+    security.pam.enableUMask = lib.mkEnableOption "the umask PAM module";
+
     security.pam.enableFscrypt = lib.mkEnableOption ''
       fscrypt, to automatically unlock directories with the user's login password.
 
@@ -2286,7 +2525,7 @@ in
       # Include the PAM modules in the system path mostly for the manpages.
       [ package ]
       ++ lib.optional config.users.ldap.enable pam_ldap
-      ++ lib.optional config.services.kanidm.enablePam config.services.kanidm.package
+      ++ lib.optional config.services.kanidm.unix.enable config.services.kanidm.package
       ++ lib.optional config.services.sssd.enable pkgs.sssd
       ++ lib.optionals config.security.pam.krb5.enable [
         pam_krb5
@@ -2297,8 +2536,6 @@ in
       ++ lib.optionals config.security.pam.p11.enable [ pkgs.pam_p11 ]
       ++ lib.optionals config.security.pam.enableFscrypt [ pkgs.fscrypt-experimental ]
       ++ lib.optionals config.security.pam.u2f.enable [ pkgs.pam_u2f ];
-
-    boot.supportedFilesystems = lib.optionals config.security.pam.enableEcryptfs [ "ecryptfs" ];
 
     security.wrappers = {
       unix_chkpwd = {
@@ -2312,8 +2549,7 @@ in
     environment.etc = lib.mapAttrs' makePAMService enabledServices;
 
     systemd =
-      lib.optionalAttrs
-        (lib.any (service: service.updateWtmp) (lib.attrValues config.security.pam.services))
+      lib.mkIf (lib.any (service: service.updateWtmp) (lib.attrValues config.security.pam.services))
         {
           tmpfiles.packages = [ pkgs.util-linux.lastlog ]; # /lib/tmpfiles.d/lastlog2-tmpfiles.conf
           services.lastlog2-import = {
@@ -2335,16 +2571,30 @@ in
         };
 
     security.pam.services = {
-      other.text = ''
-        auth     required pam_warn.so
-        auth     required pam_deny.so
-        account  required pam_warn.so
-        account  required pam_deny.so
-        password required pam_warn.so
-        password required pam_deny.so
-        session  required pam_warn.so
-        session  required pam_deny.so
-      '';
+      other = {
+        useDefaultRules = false;
+        rules =
+          let
+            rules = utils.pam.autoOrderRules [
+              {
+                name = "warn";
+                control = "required";
+                modulePath = "${package}/lib/security/pam_warn.so";
+              }
+              {
+                name = "deny";
+                control = "required";
+                modulePath = "${package}/lib/security/pam_deny.so";
+              }
+            ];
+          in
+          {
+            auth = rules;
+            account = rules;
+            password = rules;
+            session = rules;
+          };
+      };
 
       # Most of these should be moved to specific modules.
       i3lock.enable = lib.mkDefault config.programs.i3lock.enable;
@@ -2386,6 +2636,13 @@ in
           (lib.concatMap lib.attrValues)
           (lib.concatMap lib.attrValues)
           (lib.filter (rule: rule.enable))
+          (lib.filter (
+            rule:
+            !builtins.elem rule.control [
+              "include"
+              "substack"
+            ]
+          ))
           (lib.catAttrs "modulePath")
           (map (
             modulePath:

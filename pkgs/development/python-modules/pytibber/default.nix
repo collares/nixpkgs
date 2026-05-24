@@ -6,23 +6,20 @@
   gql,
   pytest-asyncio,
   pytestCheckHook,
-  pythonOlder,
   setuptools,
   websockets,
 }:
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "pytibber";
-  version = "0.32.0";
+  version = "0.37.2";
   pyproject = true;
-
-  disabled = pythonOlder "3.11";
 
   src = fetchFromGitHub {
     owner = "Danielhiversen";
     repo = "pyTibber";
-    tag = version;
-    hash = "sha256-2UiEzS2Bq0Yjng5d2+rytnoRrBQmpuPHpJmdmhuqvlI=";
+    tag = finalAttrs.version;
+    hash = "sha256-ZM9oXX6iEmsR20f2Jgg3fME1lm3egKun1GvNOZIKTV0=";
   };
 
   build-system = [ setuptools ];
@@ -38,16 +35,18 @@ buildPythonPackage rec {
     pytestCheckHook
   ];
 
-  # Tests access network
-  doCheck = false;
+  disabledTestPaths = [
+    # Tests access network
+    "test/test_tibber.py"
+  ];
 
   pythonImportsCheck = [ "tibber" ];
 
   meta = {
     description = "Python library to communicate with Tibber";
     homepage = "https://github.com/Danielhiversen/pyTibber";
-    changelog = "https://github.com/Danielhiversen/pyTibber/releases/tag/${src.tag}";
+    changelog = "https://github.com/Danielhiversen/pyTibber/releases/tag/${finalAttrs.src.tag}";
     license = lib.licenses.gpl3Plus;
     maintainers = with lib.maintainers; [ dotlambda ];
   };
-}
+})
