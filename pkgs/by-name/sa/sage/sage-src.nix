@@ -71,7 +71,7 @@ stdenv.mkDerivation rec {
     # why?
     #
     # nix-build -E 'with (import ./. {}); sage.tests.override { files = [ "src/sage/ext/fast_callable.pyx" ];}
-    ./all-revert.patch
+    # ./all-revert.patch
 
     # https://github.com/sagemath/sage/pull/40895, landed in 10.8.beta6
     (fetchpatch2 {
@@ -172,6 +172,7 @@ stdenv.mkDerivation rec {
       src/sage/env.py
 
     sed -i "s|sage-python|python3|" src/bin/sage-runtests
+    touch src/sage/ext/all__sagemath_objects.py
 
     # sage --docbuild unsets JUPYTER_PATH, which breaks our docbuilding
     # https://trac.sagemath.org/ticket/33650#comment:32
