@@ -527,6 +527,11 @@ lib.mapAttrs mkLicense (
       fullName = "DOC License";
     };
 
+    docBookDtd = {
+      spdxId = "DocBook-DTD";
+      fullName = "DocBook DTD License";
+    };
+
     drl10 = {
       spdxId = "DRL-1.0";
       fullName = "Detection Rule License 1.0";
@@ -865,6 +870,12 @@ lib.mapAttrs mkLicense (
       fullName = "ISC License";
     };
 
+    json = {
+      spdxId = "JSON";
+      fullName = "JSON License";
+      free = false;
+    };
+
     databricks = {
       fullName = "Databricks License";
       url = "https://www.databricks.com/legal/db-license";
@@ -1070,6 +1081,11 @@ lib.mapAttrs mkLicense (
     mitOpenGroup = {
       spdxId = "MIT-open-group";
       fullName = "MIT Open Group variant";
+    };
+
+    mpich2 = {
+      spdxId = "mpich2";
+      fullName = "mpich2 License";
     };
 
     mpl10 = {
@@ -1553,6 +1569,11 @@ lib.mapAttrs mkLicense (
     w3c = {
       spdxId = "W3C";
       fullName = "W3C Software Notice and License";
+    };
+
+    w3c-19980720 = {
+      spdxId = "W3C-19980720";
+      fullName = "W3C Software Notice and License (1998-07-20)";
     };
 
     wadalab = {

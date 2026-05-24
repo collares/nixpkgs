@@ -1572,7 +1572,7 @@ with haskellLib;
   # https://github.com/mgajda/json-autotype/issues/25
   json-autotype = dontCheck super.json-autotype;
 
-  gargoyle-postgresql-nix = addBuildTool [ pkgs.postgresql ] super.gargoyle-postgresql-nix;
+  gargoyle-postgresql-nix = addBuildTool pkgs.postgresql super.gargoyle-postgresql-nix;
 
   # PortMidi needs an environment variable to have ALSA find its plugins:
   # https://github.com/NixOS/nixpkgs/issues/6860
@@ -2873,12 +2873,12 @@ with haskellLib;
         doJailbreak
         # 2022-12-02: Hackage release lags behind actual releases: https://github.com/PostgREST/postgrest/issues/2275
         (overrideSrc rec {
-          version = "14.8";
+          version = "14.11";
           src = pkgs.fetchFromGitHub {
             owner = "PostgREST";
             repo = "postgrest";
             rev = "v${version}";
-            hash = "sha256-/tRYc6uIViHXnSMoNXElsgW6E+lNXesYk1LOKS6Tdkg=";
+            hash = "sha256-ml6yWKNA+5j0vX4gZPz08q6JdLaIh5mLW4N7uuzkl0M=";
           };
         })
       ];
@@ -3751,13 +3751,13 @@ with haskellLib;
 # Manually maintained
 // (
   let
-    version = "1.11.0";
+    version = "1.11.1";
 
     src = pkgs.fetchFromGitHub {
       owner = "cachix";
       repo = "cachix";
       tag = "v${version}";
-      hash = "sha256-CWhnwL2M83/ItapPVeJqCevRoQttesYxJ1h0Mo6ZCXs=";
+      hash = "sha256-TuvKVBX60mqyMT6OB5JqVEh1YIWtFMR/igLCaCdC9tw=";
     };
   in
   {

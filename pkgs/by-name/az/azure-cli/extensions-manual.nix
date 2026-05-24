@@ -174,9 +174,9 @@
 
   confcom = mkAzExtension rec {
     pname = "confcom";
-    version = "2.0.0b2";
+    version = "2.0.1";
     url = "https://azcliprod.blob.core.windows.net/cli-extensions/confcom-${version}-py3-none-any.whl";
-    hash = "sha256-1j1ASDf/g4eSixhvxBFCS4yPiX8QG/+x7IC07g5aLfw=";
+    hash = "sha256-Nol3gbwgq76ijbmRyfV64kcArqeCk4/riBr4FxAeNtk=";
     description = "Microsoft Azure Command-Line Tools Confidential Container Security Policy Generator Extension";
     nativeBuildInputs = [ autoPatchelfHook ];
     buildInputs = [ openssl ];
@@ -313,9 +313,9 @@
 
   ssh = mkAzExtension rec {
     pname = "ssh";
-    version = "2.0.7";
+    version = "2.0.8";
     url = "https://azcliprod.blob.core.windows.net/cli-extensions/ssh-${version}-py3-none-any.whl";
-    hash = "sha256-H/CwitltPFB6E2FK9HsDEEjmn2NOD9/O4BOdBlRQAwY=";
+    hash = "sha256-eX42Pr1rTPWqUna4nvNMv7sWtIGcXyc/CbmhwRjQxoM=";
     description = "SSH into Azure VMs using RBAC and AAD OpenSSH Certificates";
     propagatedBuildInputs = with python3Packages; [
       oras
