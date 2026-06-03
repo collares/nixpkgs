@@ -6,7 +6,6 @@
   git,
   gmp,
   cadical,
-  leangz,
   makeWrapper,
   pkg-config,
   libuv,
@@ -14,12 +13,13 @@
   perl,
   testers,
 }:
+
 let
   cadical' = cadical.override { version = "2.1.3"; };
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "lean4";
-  version = "4.30.0";
+  version = "4.29.1";
 
   # Using a vendored version rather than nixpkgs' version to match the exact version required by
   # Lean.  Apparently, even a slight version change can impact greatly the final performance.
@@ -34,7 +34,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "leanprover";
     repo = "lean4";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-YTsfIppd6km7wOjAxRH5KMPsW++ztFDCJT2up72J86Q=";
+    hash = "sha256-pdhRPjSic2H8zPJXLmyfN8umKDoafjmSo4OQSRxIbyE=";
   };
 
   postPatch =
@@ -66,7 +66,6 @@ stdenv.mkDerivation (finalAttrs: {
     cmake
     pkg-config
     makeWrapper
-    leangz # Provides leantar
   ];
 
   buildInputs = [
@@ -111,7 +110,6 @@ stdenv.mkDerivation (finalAttrs: {
       danielbritten
       jthulhu
       nadja-y
-      niklashh
     ];
     mainProgram = "lean";
   };
