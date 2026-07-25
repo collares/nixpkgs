@@ -2,7 +2,7 @@
   stdenv,
   lib,
   writeTextFile,
-  sagelib,
+  sagemath,
   sage-docbuild,
   env-locations,
   gfortran,
@@ -106,7 +106,7 @@ writeTextFile rec {
   destination = "/${name}";
 
   passthru = {
-    lib = sagelib;
+    lib = sagemath;
     docbuild = sage-docbuild;
   };
 
@@ -133,7 +133,7 @@ writeTextFile rec {
     }'
     export PATH="${runtimepath}:$PATH"
     export SAGE_DOC="''${SAGE_DOC_OVERRIDE:-doc-placeholder}"
-    export SAGE_DOC_SRC="''${SAGE_DOC_SRC_OVERRIDE:-${sagelib.src}/src/doc}"
+    export SAGE_DOC_SRC="''${SAGE_DOC_SRC_OVERRIDE:-${sagemath.src}/src/doc}"
 
     # set locations of dependencies
     . ${env-locations}/sage-env-locations
@@ -173,9 +173,9 @@ writeTextFile rec {
     }'
     export CXXFLAGS=$CFLAGS
 
-    export SAGE_LIB='${sagelib}/${python3.sitePackages}'
+    export SAGE_LIB='${sagemath}/${python3.sitePackages}'
 
-    export SAGE_EXTCODE='${sagelib.src}/src/sage/ext_data'
+    export SAGE_EXTCODE='${sagemath.src}/src/sage/ext_data'
 
     # for find_library
     export DYLD_LIBRARY_PATH="${

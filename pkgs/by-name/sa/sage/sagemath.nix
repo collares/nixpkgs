@@ -92,7 +92,7 @@ assert (!blas.isILP64) && (!lapack.isILP64);
 
 buildPythonPackage rec {
   version = src.version;
-  pname = "sagelib";
+  pname = "sagemath";
   src = sage-src;
   pyproject = true;
 

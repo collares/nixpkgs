@@ -27,8 +27,8 @@ let
   python3 = pkgs.python3 // {
     pkgs = pkgs.python3.pkgs.overrideScope (
       self: super: {
-        # `sagelib`, i.e. all of sage except some wrappers and runtime dependencies
-        sagelib = self.callPackage ./sagelib.nix {
+        # `sagemath`, i.e. all of sage except some wrappers and runtime dependencies
+        sagemath = self.callPackage ./sagemath.nix {
           inherit flint;
           inherit ntl;
           inherit sage-src env-locations singular;
@@ -85,7 +85,7 @@ let
   # The shell file that gets sourced on every sage start. Will also source
   # the env-locations file.
   sage-env = callPackage ./sage-env.nix {
-    sagelib = python3.pkgs.sagelib;
+    sagemath = python3.pkgs.sagemath;
     sage-docbuild = python3.pkgs.sage-docbuild;
     inherit env-locations;
     inherit
@@ -105,7 +105,7 @@ let
     inherit sage-with-env jupyter-kernel-specs;
   };
 
-  # sagelib with added wrappers and a dependency on sage-tests to make sure thet tests were run.
+  # sagemath with added wrappers and a dependency on sage-tests to make sure thet tests were run.
   sage-with-env = callPackage ./sage-with-env.nix {
     inherit python3 pythonEnv;
     inherit ntl;
@@ -117,7 +117,7 @@ let
 
   # Doesn't actually build anything, just runs sages testsuite. This is a
   # separate derivation to make it possible to re-run the tests without
-  # rebuilding sagelib (which takes ~30 minutes).
+  # rebuilding sagemath (which takes ~30 minutes).
   # Running the tests should take something in the order of 1h.
   sage-tests = callPackage ./sage-tests.nix {
     inherit sage-with-env;
@@ -129,7 +129,7 @@ let
   pythonRuntimeDeps =
     with python3.pkgs;
     [
-      sagelib
+      sagemath
       sage-docbuild
       cvxopt
       networkx
